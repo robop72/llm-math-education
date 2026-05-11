@@ -4,6 +4,7 @@ sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
 
 import os
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional, List
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI
@@ -15,6 +16,13 @@ from langchain_community.chat_message_histories import ChatMessageHistory
 
 # 1. Initialize FastAPI
 app = FastAPI(title="Voxii Master Expert Tutor")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["https://llm-math-education.vercel.app"],
+    allow_methods=["POST", "GET"],
+    allow_headers=["Content-Type"],
+)
 
 # 2. Initialize Expert Brain (ChromaDB)
 # Note: Ensure you have run expert_expansion.py and update_brain.py locally first
