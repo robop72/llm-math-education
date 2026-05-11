@@ -211,3 +211,5 @@ Other contributors:
 3. What license does this repository use?
 
    The code is released under the MIT license. The example data used in the Streamlit app is released CC BY-SA 4.0; see the `data/app_data` folder for more info. Additional details on the data are present in the developer's guide.
+   
+ 
