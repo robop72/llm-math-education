@@ -1,8 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import ReactMarkdown from 'react-markdown';
-import remarkMath from 'remark-math';
-import rehypeKatex from 'rehype-katex';
-import 'katex/dist/katex.min.css';
+import { Send, User, Bot, Loader2, Sparkles } from 'lucide-react';
+import ExpertMessage from './ExpertMessage';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -18,16 +16,24 @@ interface Props {
 const API_URL = import.meta.env.VITE_API_URL || 'https://voxii-tutor-backend-919882895306.australia-southeast1.run.app';
 
 export default function ChatInterface({ yearLevel, subject, sessionId }: Props) {
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      role: 'assistant',
+      content: `Hello! I'm your Expert ${yearLevel} ${subject} tutor. I've reviewed the VCAA curriculum for our session — what would you like to master today?`,
+    },
+  ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
-  const bottomRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
   }, [messages, loading]);
 
-  async function sendMessage() {
+  async function sendMessage(e: React.FormEvent) {
+    e.preventDefault();
     const text = input.trim();
     if (!text || loading) return;
 
@@ -51,96 +57,95 @@ export default function ChatInterface({ yearLevel, subject, sessionId }: Props) 
       const data = await res.json();
       const reply = data.response ?? data.message ?? data.content ?? JSON.stringify(data);
       setMessages(prev => [...prev, { role: 'assistant', content: reply }]);
-    } catch (err) {
+    } catch {
       setMessages(prev => [
         ...prev,
-        { role: 'assistant', content: `Sorry, something went wrong. Please try again.` },
+        { role: 'assistant', content: "I'm having a quick look at my textbooks. Please try sending that again in a second!" },
       ]);
     } finally {
       setLoading(false);
     }
   }
 
-  function handleKey(e: React.KeyboardEvent) {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage();
-    }
-  }
-
   return (
-    <div className="flex flex-col h-screen bg-gray-950 text-gray-100">
+    <div className="flex flex-col h-screen max-w-5xl mx-auto bg-slate-50 shadow-2xl">
       {/* Header */}
-      <div className="px-6 py-4 border-b border-gray-800 bg-gray-900">
-        <h1 className="text-lg font-semibold">Voxii Expert Tutor</h1>
-        <p className="text-sm text-gray-400">{yearLevel} · {subject}</p>
+      <div className="p-5 border-b bg-white flex justify-between items-center shadow-sm">
+        <div className="flex items-center gap-3">
+          <div className="bg-blue-600 p-2 rounded-lg">
+            <Sparkles className="text-white" size={20} />
+          </div>
+          <div>
+            <h1 className="text-lg font-bold text-slate-900 leading-none">Voxii Master Tutor</h1>
+            <p className="text-xs text-slate-500 mt-1 font-medium uppercase tracking-tighter">
+              {yearLevel} • {subject} • VCAA Aligned
+            </p>
+          </div>
+        </div>
+        <div className="hidden sm:flex items-center gap-2 bg-green-50 px-3 py-1 rounded-full border border-green-100">
+          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+          <span className="text-[10px] font-bold text-green-700 uppercase">Live Pipeline Connected</span>
+        </div>
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-4 py-6 space-y-4">
-        {messages.length === 0 && (
-          <p className="text-center text-gray-500 mt-16">
-            Ask me anything about {subject}.
-          </p>
-        )}
+      <div ref={scrollRef} className="flex-1 overflow-y-auto p-6 space-y-8 scroll-smooth">
         {messages.map((msg, i) => (
-          <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div
-              className={`max-w-2xl rounded-2xl px-4 py-3 text-sm leading-relaxed ${
-                msg.role === 'user'
-                  ? 'bg-indigo-600 text-white'
-                  : 'bg-gray-800 text-gray-100'
-              }`}
-            >
-              <ReactMarkdown
-                remarkPlugins={[remarkMath]}
-                rehypePlugins={[rehypeKatex]}
-                components={{
-                  p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
-                  ul: ({ children }) => <ul className="list-disc pl-4 mb-2">{children}</ul>,
-                  ol: ({ children }) => <ol className="list-decimal pl-4 mb-2">{children}</ol>,
-                  strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
-                }}
-              >
-                {msg.content}
-              </ReactMarkdown>
+          <div key={i} className={`flex gap-4 ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm ${
+              msg.role === 'user' ? 'bg-blue-600 text-white' : 'bg-white border border-slate-200 text-slate-600'
+            }`}>
+              {msg.role === 'user' ? <User size={20} /> : <Bot size={20} />}
+            </div>
+            <div className={`max-w-[85%] sm:max-w-[70%] rounded-2xl p-5 shadow-sm ${
+              msg.role === 'user'
+                ? 'bg-blue-600 text-white rounded-tr-none'
+                : 'bg-white text-slate-800 rounded-tl-none border border-slate-100'
+            }`}>
+              {msg.role === 'assistant' ? (
+                <ExpertMessage text={msg.content} />
+              ) : (
+                <p className="whitespace-pre-wrap font-medium">{msg.content}</p>
+              )}
             </div>
           </div>
         ))}
+
         {loading && (
-          <div className="flex justify-start">
-            <div className="bg-gray-800 rounded-2xl px-4 py-3">
-              <span className="inline-flex gap-1">
-                <span className="w-2 h-2 bg-gray-500 rounded-full animate-bounce [animation-delay:0ms]" />
-                <span className="w-2 h-2 bg-gray-500 rounded-full animate-bounce [animation-delay:150ms]" />
-                <span className="w-2 h-2 bg-gray-500 rounded-full animate-bounce [animation-delay:300ms]" />
-              </span>
+          <div className="flex gap-4">
+            <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center">
+              <Bot size={20} className="text-blue-500" />
+            </div>
+            <div className="bg-white border border-slate-100 rounded-2xl p-5 rounded-tl-none flex items-center gap-3 text-slate-400 italic">
+              <Loader2 size={18} className="animate-spin text-blue-500" />
+              <span>Analyzing curriculum data...</span>
             </div>
           </div>
         )}
-        <div ref={bottomRef} />
       </div>
 
       {/* Input */}
-      <div className="px-4 py-4 border-t border-gray-800 bg-gray-900">
-        <div className="flex gap-2 max-w-3xl mx-auto">
-          <textarea
-            className="flex-1 resize-none rounded-xl bg-gray-800 border border-gray-700 px-4 py-2.5 text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            rows={2}
-            placeholder="Ask a question…"
+      <div className="p-6 bg-white border-t">
+        <form onSubmit={sendMessage} className="relative max-w-4xl mx-auto">
+          <input
+            type="text"
             value={input}
             onChange={e => setInput(e.target.value)}
-            onKeyDown={handleKey}
+            placeholder={`Ask your ${subject} question...`}
+            className="w-full p-4 pr-16 rounded-2xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all bg-slate-50/50"
+            disabled={loading}
           />
           <button
-            onClick={sendMessage}
+            type="submit"
             disabled={loading || !input.trim()}
-            className="px-4 py-2 rounded-xl bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            className="absolute right-2 top-2 bg-blue-600 text-white p-2.5 rounded-xl hover:bg-blue-700 disabled:opacity-30 transition-all shadow-lg shadow-blue-500/20"
           >
-            Send
+            <Send size={20} />
           </button>
+        </form>
+        <div className="mt-3 flex justify-center">
+          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Expert Reasoning v2.0</p>
         </div>
-        <p className="text-xs text-gray-600 text-center mt-2">Shift+Enter for new line · Enter to send</p>
       </div>
     </div>
   );
