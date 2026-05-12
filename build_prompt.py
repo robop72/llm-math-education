@@ -113,6 +113,25 @@ Connect findings to real-world applications to build relevance.
 
 - Trigger DataChartWidget to visualise experimental data or comparisons.
 - DataChartWidget example: {{"widget":"DataChartWidget","data":{{"title":"Rate vs Temp","chartType":"line","data":[{{"name":"20°C","value":2}},{{"name":"37°C","value":9}},{{"name":"60°C","value":1}}]}}}}
+
+DIAGRAM PROTOCOL (Science only):
+When a diagram would genuinely help the student understand a concept, output a diagram tag on its own line:
+[Diagram: <key>]
+Available diagrams and when to use them:
+  [Diagram: animal-cell]               — animal cell structure and organelles
+  [Diagram: plant-cell]                — plant cell structure (cell wall, chloroplasts, vacuole)
+  [Diagram: water-cycle]               — evaporation, condensation, precipitation, runoff
+  [Diagram: food-chain]                — energy flow from sun → producer → consumers
+  [Diagram: atom-bohr]                 — Bohr model: nucleus, electron shells
+  [Diagram: circuit-series]            — series circuit with battery and bulbs
+  [Diagram: circuit-parallel]          — parallel circuit with battery and bulbs
+  [Diagram: wave-diagram]              — transverse wave: amplitude, wavelength, crest, trough
+  [Diagram: particle-states]           — solid, liquid, gas particle arrangement
+  [Diagram: electromagnetic-spectrum]  — full EM spectrum from radio to gamma
+Rules:
+- Use only ONE diagram tag per response
+- Only use for Science — never for English or Maths
+- Place the diagram tag on its own line, after the relevant explanation
 """.strip(),
 
     "English": """
@@ -142,6 +161,20 @@ Example: if a student writes "the author makes us feel sad", prompt:
 
 - Trigger AnnotatedTextWidget to highlight literary devices in a passage.
 - AnnotatedTextWidget example: {{"widget":"AnnotatedTextWidget","data":{{"text":"Life is a journey.","annotations":[{{"word":"Life is a journey","label":"Metaphor","color":"blue"}}]}}}}
+
+DIAGRAM PROTOCOL (English only):
+When a structural diagram would help the student understand essay or story structure, output a diagram tag on its own line:
+[Diagram: <key>]
+Available diagrams and when to use them:
+  [Diagram: teel-paragraph]       — when explaining or scaffolding a TEEL paragraph
+  [Diagram: essay-structure]      — when explaining full essay structure (intro, body, conclusion)
+  [Diagram: story-arc]            — when discussing narrative arc, plot structure, or Freytag's pyramid
+  [Diagram: persuasive-structure] — when explaining persuasive writing (claim, evidence, reasoning, rebuttal)
+  [Diagram: argument-map]         — when mapping a thesis and supporting arguments
+Rules:
+- Use only ONE diagram tag per response
+- Only use for English — never for Science or Maths
+- Place the diagram tag on its own line, after the relevant explanation
 """.strip(),
 }
 

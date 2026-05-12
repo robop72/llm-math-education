@@ -4,25 +4,22 @@ import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
 import GraphWidget from '../widgets/GraphWidget';
+import DiagramWidget from '../widgets/DiagramWidget';
 import { WidgetRegistry } from '../widgets/registry';
 
 interface Props {
   text: string;
 }
 
-// Matches [Graph: expr1, expr2, ...]  (case-insensitive)
-const GRAPH_REGEX = /\[Graph:\s*([^\]]+)\]/gi;
-// Matches [Image of description]
-const IMAGE_REGEX = /\[Image of ([^\]]+)\]/gi;
-
 type Part =
-  | { type: 'text';  content: string }
-  | { type: 'graph'; expressions: string[]; raw: string }
-  | { type: 'image'; content: string };
+  | { type: 'text';    content: string }
+  | { type: 'graph';   expressions: string[]; raw: string }
+  | { type: 'diagram'; id: string }
+  | { type: 'image';   content: string };
 
 function buildParts(text: string): Part[] {
-  // Build a combined regex so we process in document order
-  const COMBINED = /\[Graph:\s*([^\]]+)\]|\[Image of ([^\]]+)\]/gi;
+  // Combined regex processes [Graph:], [Diagram:], and [Image of] in document order
+  const COMBINED = /\[Graph:\s*([^\]]+)\]|\[Diagram:\s*([^\]]+)\]|\[Image of ([^\]]+)\]/gi;
   const parts: Part[] = [];
   let lastIndex = 0;
   let match: RegExpExecArray | null;
@@ -32,11 +29,12 @@ function buildParts(text: string): Part[] {
       parts.push({ type: 'text', content: text.slice(lastIndex, match.index) });
     }
     if (match[1] !== undefined) {
-      // Graph tag — split on comma for multiple expressions
       const expressions = match[1].split(';').flatMap(e => e.split(',')).map(e => e.trim()).filter(Boolean);
       parts.push({ type: 'graph', expressions, raw: match[1].trim() });
+    } else if (match[2] !== undefined) {
+      parts.push({ type: 'diagram', id: match[2].trim() });
     } else {
-      parts.push({ type: 'image', content: match[2] });
+      parts.push({ type: 'image', content: match[3] });
     }
     lastIndex = match.index + match[0].length;
   }
@@ -76,6 +74,9 @@ export default function ExpertMessage({ text }: Props) {
       {parts.map((part, i) => {
         if (part.type === 'graph') {
           return <GraphWidget key={i} expressions={part.expressions} label={part.raw} />;
+        }
+        if (part.type === 'diagram') {
+          return <DiagramWidget key={i} id={part.id} />;
         }
         if (part.type === 'image') {
           return (
