@@ -47,7 +47,7 @@ export default function App() {
   if (view === 'parent-dashboard') return <ParentDashboard onBack={() => setView('chat')} />;
 
   return (
-    <div className="flex h-screen bg-gray-950 overflow-hidden">
+    <div className="flex h-screen bg-gray-50 dark:bg-gray-950 overflow-hidden">
       {/* Mobile backdrop */}
       {sidebarOpen && (
         <div
@@ -73,7 +73,7 @@ export default function App() {
 
       <div className="flex flex-col flex-1 min-w-0">
         {/* Top bar */}
-        <div className="flex items-center gap-2 px-3 py-2.5 border-b border-gray-800 bg-gray-950 flex-shrink-0">
+        <div className="flex items-center gap-2 px-3 py-2.5 border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-950 flex-shrink-0">
           {/* Mobile hamburger */}
           <button
             className="md:hidden p-1.5 text-gray-400 hover:text-gray-200 flex-shrink-0 transition-colors"
@@ -94,7 +94,7 @@ export default function App() {
               setYearLevel(y);
               if (y !== 7 && y !== 9) setIsNaplanMode(false);
             }}
-              className="flex-shrink-0 px-3 py-1.5 rounded-full text-sm font-medium bg-gray-800 text-gray-300 outline-none cursor-pointer hover:bg-gray-700 transition-colors border border-gray-700"
+              className="flex-shrink-0 px-3 py-1.5 rounded-full text-sm font-medium bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 outline-none cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors border border-gray-300 dark:border-gray-700"
             >
               {ALLOWED_YEAR_LEVELS.map(y => (
                 <option key={y} value={y}>Year {y}</option>
@@ -110,7 +110,7 @@ export default function App() {
                 className={`flex-shrink-0 px-3 sm:px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
                   subject === s
                     ? 'bg-blue-500 text-white shadow-sm'
-                    : 'bg-gray-800 text-gray-400 hover:bg-gray-700 border border-gray-700'
+                    : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-700'
                 }`}
               >
                 {s}
@@ -125,7 +125,7 @@ export default function App() {
                   className={`flex-shrink-0 px-3 sm:px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
                     isNaplanMode
                       ? 'bg-amber-500 text-white shadow-sm'
-                      : 'bg-gray-800 text-gray-400 hover:bg-gray-700 border border-gray-700'
+                      : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-700'
                   }`}
                 >
                   NAPLAN

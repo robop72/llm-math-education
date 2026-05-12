@@ -50,12 +50,12 @@ export default function ExpertMessage({ text }: Props) {
             <img
               src={`https://source.unsplash.com/featured/?${encodeURIComponent(part.content)},diagram,mathematics`}
               alt={part.content}
-              className="max-w-full h-auto rounded-xl shadow-lg border border-gray-700 mx-auto"
+              className="max-w-full h-auto rounded-xl shadow-lg border border-gray-300 dark:border-gray-700 mx-auto"
             />
-            <p className="text-xs text-gray-400 mt-2 italic">{part.content}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 italic">{part.content}</p>
           </div>
         ) : (
-          <div key={i} className="prose prose-invert prose-sm max-w-none">
+          <div key={i} className="prose dark:prose-invert prose-sm max-w-none">
             <ReactMarkdown
               remarkPlugins={[remarkMath]}
               rehypePlugins={[rehypeKatex]}

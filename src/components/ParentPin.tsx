@@ -55,22 +55,22 @@ export default function ParentPin({ onSuccess, onBack }: Props) {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-950 flex flex-col items-center justify-center px-4">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex flex-col items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <div className="flex justify-center mb-6">
           <img src="/voxii-logo.png" alt="Voxii AI" className="h-10 object-contain" />
         </div>
 
-        <div className="bg-gray-800 rounded-2xl shadow-lg p-6 border border-gray-700">
-          <h1 className="text-lg font-semibold text-center text-white mb-0.5">Parent Portal</h1>
-          <p className="text-xs text-center text-gray-400 mb-5">Enter your 4-digit PIN to continue</p>
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
+          <h1 className="text-lg font-semibold text-center text-gray-900 dark:text-white mb-0.5">Parent Portal</h1>
+          <p className="text-xs text-center text-gray-500 dark:text-gray-400 mb-5">Enter your 4-digit PIN to continue</p>
 
           <div className={`flex justify-center gap-3 mb-4 ${shake ? 'animate-shake' : ''}`}>
             {[0, 1, 2, 3].map(i => (
               <div
                 key={i}
                 className={`w-3.5 h-3.5 rounded-full border-2 transition-all duration-150 ${
-                  i < pin.length ? 'bg-blue-500 border-blue-500' : 'bg-transparent border-gray-600'
+                  i < pin.length ? 'bg-blue-500 border-blue-500' : 'bg-transparent border-gray-300 dark:border-gray-600'
                 }`}
               />
             ))}
@@ -86,7 +86,7 @@ export default function ParentPin({ onSuccess, onBack }: Props) {
                   <button
                     key={idx}
                     onClick={handleBack}
-                    className="h-11 rounded-xl text-base font-medium text-gray-300 bg-gray-700 hover:bg-gray-600 active:scale-95 transition-transform"
+                    className="h-11 rounded-xl text-base font-medium text-gray-600 dark:text-gray-300 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 active:scale-95 transition-transform"
                   >
                     {d}
                   </button>
@@ -96,7 +96,7 @@ export default function ParentPin({ onSuccess, onBack }: Props) {
                 <button
                   key={idx}
                   onClick={() => handleDigit(d)}
-                  className="h-11 rounded-xl text-lg font-semibold text-white bg-gray-700 hover:bg-gray-600 active:scale-95 transition-transform"
+                  className="h-11 rounded-xl text-lg font-semibold text-gray-900 dark:text-white bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 active:scale-95 transition-transform"
                 >
                   {d}
                 </button>
@@ -109,7 +109,7 @@ export default function ParentPin({ onSuccess, onBack }: Props) {
 
         <button
           onClick={onBack}
-          className="mt-4 w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-medium text-gray-400 bg-gray-800 border border-gray-700 hover:bg-gray-700 transition-colors"
+          className="mt-4 w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-medium text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />

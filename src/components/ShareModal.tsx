@@ -21,22 +21,22 @@ export default function ShareModal({ sessionId, onClose }: Props) {
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div className="bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl p-6 w-full max-w-md mx-4 relative">
+      <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-2xl p-6 w-full max-w-md mx-4 relative">
         {/* Close */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-gray-500 hover:text-gray-300 transition-colors"
+          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
 
-        <h2 className="text-lg font-semibold text-white mb-4">Shareable public link</h2>
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Shareable public link</h2>
 
         {/* URL + Copy button row */}
         <div className="flex items-center gap-2 mb-4">
-          <div className="flex-1 bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 overflow-hidden">
+          <div className="flex-1 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2.5 overflow-hidden">
             <p className="text-sm text-blue-400 truncate font-mono">{shareUrl}</p>
           </div>
           <button
@@ -66,7 +66,7 @@ export default function ShareModal({ sessionId, onClose }: Props) {
         </div>
 
         {/* Info line */}
-        <div className="flex items-start gap-2 text-xs text-gray-400">
+        <div className="flex items-start gap-2 text-xs text-gray-500 dark:text-gray-400">
           <svg className="w-4 h-4 shrink-0 mt-0.5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>

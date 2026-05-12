@@ -66,7 +66,7 @@ function SessionRow({
 
   if (renaming) {
     return (
-      <div className="flex items-center rounded-lg bg-gray-700/60 px-2 py-1.5">
+      <div className="flex items-center rounded-lg bg-gray-200/60 dark:bg-gray-700/60 px-2 py-1.5">
         <input
           ref={renameRef}
           value={renameValue}
@@ -76,7 +76,7 @@ function SessionRow({
             if (e.key === 'Escape') setRenaming(false);
           }}
           onBlur={commitRename}
-          className="flex-1 bg-transparent text-sm text-gray-100 outline-none min-w-0"
+          className="flex-1 bg-transparent text-sm text-gray-900 dark:text-gray-100 outline-none min-w-0"
         />
       </div>
     );
@@ -86,7 +86,7 @@ function SessionRow({
     <div
       ref={menuRef}
       className={`group relative flex items-center rounded-lg transition-colors cursor-pointer ${
-        s.id === currentId ? 'bg-gray-700/60' : 'hover:bg-gray-800/60'
+        s.id === currentId ? 'bg-gray-200/60 dark:bg-gray-700/60' : 'hover:bg-gray-100/70 dark:hover:bg-gray-800/60'
       }`}
     >
       {s.pinned && (
@@ -94,12 +94,12 @@ function SessionRow({
           <path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z" />
         </svg>
       )}
-      <button onClick={() => onLoadSession(s.id)} className="flex-1 text-left px-3 py-2 text-sm truncate text-gray-300 min-w-0">
+      <button onClick={() => onLoadSession(s.id)} className="flex-1 text-left px-3 py-2 text-sm truncate text-gray-700 dark:text-gray-300 min-w-0">
         {s.title}
       </button>
       <button
         onClick={e => { e.stopPropagation(); setMenuOpen(o => !o); }}
-        className="opacity-0 group-hover:opacity-100 p-1.5 mr-1 rounded text-gray-500 hover:text-gray-300 transition-colors flex-shrink-0"
+        className="opacity-0 group-hover:opacity-100 p-1.5 mr-1 rounded text-gray-400 hover:text-gray-700 dark:text-gray-500 dark:hover:text-gray-300 transition-colors flex-shrink-0"
       >
         <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
           <circle cx="5" cy="12" r="2" /><circle cx="12" cy="12" r="2" /><circle cx="19" cy="12" r="2" />
@@ -107,11 +107,11 @@ function SessionRow({
       </button>
 
       {menuOpen && (
-        <div className="absolute right-0 top-full mt-1 z-50 bg-gray-800 border border-gray-700 rounded-xl shadow-2xl py-1.5 min-w-[170px]">
+        <div className="absolute right-0 top-full mt-1 z-50 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-2xl py-1.5 min-w-[170px]">
           {/* Share */}
           <button
             onClick={() => { onShare(s.id); setMenuOpen(false); }}
-            className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-gray-300 hover:bg-gray-700 transition-colors"
+            className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
           >
             <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
@@ -122,7 +122,7 @@ function SessionRow({
           {/* Pin / Unpin */}
           <button
             onClick={() => { onTogglePin(s.id); setMenuOpen(false); }}
-            className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-gray-300 hover:bg-gray-700 transition-colors"
+            className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
           >
             <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
@@ -133,7 +133,7 @@ function SessionRow({
           {/* Rename */}
           <button
             onClick={() => { setMenuOpen(false); setRenaming(true); }}
-            className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-gray-300 hover:bg-gray-700 transition-colors"
+            className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
           >
             <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -141,12 +141,12 @@ function SessionRow({
             Rename
           </button>
 
-          <div className="h-px bg-gray-700 mx-2 my-1" />
+          <div className="h-px bg-gray-200 dark:bg-gray-700 mx-2 my-1" />
 
           {/* Delete */}
           <button
             onClick={() => { onDeleteSession(s.id); setMenuOpen(false); }}
-            className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-red-400 hover:bg-gray-700 transition-colors"
+            className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-red-500 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
           >
             <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -180,7 +180,7 @@ export default function Sidebar({
   return (
     <>
       <aside className={`
-        flex-shrink-0 flex flex-col h-full bg-[#0f1117] border-r border-gray-800
+        flex-shrink-0 flex flex-col h-full bg-white dark:bg-[#0f1117] border-r border-gray-200 dark:border-gray-800
         transition-[transform,width] duration-300 ease-in-out
         fixed inset-y-0 left-0 z-40
         md:relative md:z-auto md:translate-x-0
@@ -195,13 +195,13 @@ export default function Sidebar({
           {isOpen && <img src="/voxii-logo.png" alt="Voxii AI" className="h-7 object-contain" />}
           {!isOpen && <img src="/voxii-favicon.png" alt="Voxii" className="w-7 h-7 object-contain" />}
           <div className="flex items-center gap-1">
-            <button onClick={onToggle} className="p-1.5 rounded-full hover:bg-gray-800 text-gray-500 hover:text-gray-300 transition-colors" title={isOpen ? 'Collapse' : 'Expand'}>
+            <button onClick={onToggle} className="p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors" title={isOpen ? 'Collapse' : 'Expand'}>
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isOpen ? 'M15 19l-7-7 7-7' : 'M9 5l7 7-7 7'} />
               </svg>
             </button>
             {isOpen && (
-              <button className="p-1.5 rounded-full hover:bg-gray-800 text-gray-500 hover:text-gray-300 transition-colors" title="Search">
+              <button className="p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors" title="Search">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
@@ -214,7 +214,7 @@ export default function Sidebar({
         <div className="px-3 mb-1">
           <button
             onClick={onNewChat}
-            className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-200 hover:bg-gray-800 transition-colors ${!isOpen ? 'justify-center' : ''}`}
+            className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors ${!isOpen ? 'justify-center' : ''}`}
             title="New Chat"
           >
             <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -227,12 +227,12 @@ export default function Sidebar({
         {/* My Learning */}
         {isOpen && (
           <div className="px-3 mb-3">
-            <button className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-400 hover:bg-gray-800 transition-colors group">
+            <button className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors group">
               <svg className="w-4 h-4 shrink-0 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
               </svg>
               <span>My Learning</span>
-              <span className="ml-auto text-[10px] font-semibold bg-gray-700 text-gray-400 px-2 py-0.5 rounded-full">Soon</span>
+              <span className="ml-auto text-[10px] font-semibold bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 px-2 py-0.5 rounded-full">Soon</span>
             </button>
           </div>
         )}
@@ -262,7 +262,7 @@ export default function Sidebar({
                 if (!group?.length) return null;
                 return (
                   <div key={label}>
-                    <p className="text-xs text-gray-600 px-2 mb-1">{label}</p>
+                    <p className="text-xs text-gray-400 dark:text-gray-600 px-2 mb-1">{label}</p>
                     {group.map(s => (
                       <SessionRow
                         key={s.id} s={s} currentId={currentId}
@@ -274,7 +274,7 @@ export default function Sidebar({
                   </div>
                 );
               })}
-              {withMessages.length === 0 && <p className="text-xs text-gray-600 px-2 italic">No chats yet</p>}
+              {withMessages.length === 0 && <p className="text-xs text-gray-400 dark:text-gray-600 px-2 italic">No chats yet</p>}
             </div>
           </>
         )}
@@ -282,8 +282,8 @@ export default function Sidebar({
 
         {/* Bottom: Parent Portal + Settings */}
         {isOpen && (
-          <div className="border-t border-gray-800 px-3 py-3 space-y-1">
-            <button onClick={onOpenParentPortal} className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm text-gray-400 hover:bg-gray-800 transition-colors">
+          <div className="border-t border-gray-200 dark:border-gray-800 px-3 py-3 space-y-1">
+            <button onClick={onOpenParentPortal} className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
               <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
@@ -291,7 +291,7 @@ export default function Sidebar({
             </button>
             <button
               onClick={() => setSettingsOpen(o => !o)}
-              className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-sm text-gray-400 hover:bg-gray-800 transition-colors"
+              className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-sm text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
             >
               <span className="flex items-center gap-2.5">
                 <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -308,7 +308,7 @@ export default function Sidebar({
               <div className="px-3 py-2">
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-gray-500">{dark ? 'Dark mode' : 'Light mode'}</span>
-                  <button onClick={onToggleTheme} className={`relative w-9 h-5 rounded-full transition-colors ${dark ? 'bg-blue-500' : 'bg-gray-600'}`}>
+                  <button onClick={onToggleTheme} className={`relative w-9 h-5 rounded-full transition-colors ${dark ? 'bg-blue-500' : 'bg-gray-300'}`}>
                     <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${dark ? 'translate-x-4' : 'translate-x-0'}`} />
                   </button>
                 </div>
