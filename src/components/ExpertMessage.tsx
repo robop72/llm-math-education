@@ -3,7 +3,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
-import GraphWidget from './GraphWidget';
+import { WidgetRegistry } from '../widgets/registry';
 
 interface Props {
   text: string;
@@ -11,12 +11,11 @@ interface Props {
 
 const IMAGE_REGEX = /\[Image of ([^\]]+)\]/gi;
 
-function renderText(text: string) {
+function buildParts(text: string) {
   const parts: { type: 'text' | 'image'; content: string }[] = [];
   let lastIndex = 0;
   let match;
   IMAGE_REGEX.lastIndex = 0;
-
   while ((match = IMAGE_REGEX.exec(text)) !== null) {
     if (match.index > lastIndex) parts.push({ type: 'text', content: text.slice(lastIndex, match.index) });
     parts.push({ type: 'image', content: match[1] });
@@ -26,8 +25,22 @@ function renderText(text: string) {
   return parts;
 }
 
+function WidgetInterceptor({ className, children }: { className?: string; children?: React.ReactNode }) {
+  const language = /language-(\w+)/.exec(className || '')?.[1];
+
+  if (language === 'json') {
+    try {
+      const parsed = JSON.parse(String(children).trim());
+      const Component = parsed.widget ? WidgetRegistry[parsed.widget] : null;
+      if (Component && parsed.data) return <Component {...parsed.data} />;
+    } catch { /* fall through */ }
+  }
+
+  return <code className={className}>{children}</code>;
+}
+
 export default function ExpertMessage({ text }: Props) {
-  const parts = renderText(text);
+  const parts = buildParts(text);
 
   return (
     <div className="space-y-3">
@@ -46,20 +59,7 @@ export default function ExpertMessage({ text }: Props) {
             <ReactMarkdown
               remarkPlugins={[remarkMath]}
               rehypePlugins={[rehypeKatex]}
-              components={{
-                code({ className, children }) {
-                  const language = /language-(\w+)/.exec(className || '')?.[1];
-                  if (language === 'json') {
-                    try {
-                      const parsed = JSON.parse(String(children).trim());
-                      if (parsed.type === 'graph' && parsed.equation) {
-                        return <GraphWidget equation={parsed.equation} label={parsed.label} />;
-                      }
-                    } catch { /* fall through */ }
-                  }
-                  return <code className={className}>{children}</code>;
-                },
-              }}
+              components={{ code: WidgetInterceptor }}
             >
               {part.content}
             </ReactMarkdown>
