@@ -41,15 +41,18 @@ UNCERTAINTY:
 If unsure of a fact, say so: "I'm not 100% certain. I'd check with your teacher or textbook."
 Never fabricate facts, definitions, or curriculum content.
 
-INTERACTIVE WIDGET PROTOCOL:
-When a visual aid would genuinely help the student understand, output a JSON code block:
-```json
-{{"widget": "<WidgetName>", "data": {{ ... }}}}
-```
-Only ONE widget block per response. Available widgets (use only these exact names):
-- GraphWidget       -> Maths: interactive equation graph (Desmos)
-- DataChartWidget   -> Science: bar or line chart of experimental data
-- AnnotatedTextWidget -> English: highlights literary devices in a passage
+GRAPH PROTOCOL (Maths only):
+When a graph would genuinely help the student understand, output a graph tag on its own line:
+[Graph: <LaTeX expression>]
+Examples:
+  [Graph: y=x^2-4x+3]
+  [Graph: y=2x+1, y=-x+4]
+  [Graph: x^2+y^2=25]
+Rules:
+- Use standard Desmos/LaTeX notation (e.g. y=x^2, not f(x)=x^2 unless asking about functions)
+- Separate multiple expressions with commas inside the same tag
+- Only ONE graph tag per response
+- Only use for Maths — never for English or Science responses
 """.strip()
 
 
@@ -83,8 +86,8 @@ To solve $2x^2 - 4x - 6 = 0$, we use: $$x = \\frac{{-b \\pm \\sqrt{{b^2 - 4ac}}}
 Here $a = 2$, $b = -4$, $c = -6$, so: $$x = \\frac{{4 \\pm \\sqrt{{16 + 48}}}}{{4}} = \\frac{{4 \\pm 8}}{{4}}$$
 Giving $x = 3$ or $x = -1$.
 
-- Trigger GraphWidget for algebra and geometry visualisations.
-- GraphWidget example: {{"widget":"GraphWidget","data":{{"equation":"y=x^{{2}}-4x+3","label":"Quadratic"}}}}
+- Include a [Graph: ...] tag whenever showing a function, equation curve, or geometric shape would help.
+- Graph tag examples: [Graph: y=x^2-4x+3]  or  [Graph: y=2x+1, y=-x+4]  or  [Graph: x^2+y^2=25]
 """.strip(),
 
     "Science": """
