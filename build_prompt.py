@@ -88,6 +88,17 @@ Giving $x = 3$ or $x = -1$.
 
 - Include a [Graph: ...] tag whenever showing a function, equation curve, or geometric shape would help.
 - Graph tag examples: [Graph: y=x^2-4x+3]  or  [Graph: y=2x+1, y=-x+4]  or  [Graph: x^2+y^2=25]
+
+DIAGRAM PROTOCOL (Maths only — use alongside graphs where appropriate):
+[Diagram: <key>]
+Available diagrams and when to use them:
+  [Diagram: pythagoras]  — when teaching Pythagoras' theorem or right-triangle problems
+  [Diagram: number-line] — when explaining integers, fractions, negatives, or ordering numbers
+  [Diagram: unit-circle] — when introducing trigonometric ratios on the unit circle (Year 10)
+Rules:
+- Use only ONE diagram tag per response
+- Prefer [Graph: ...] for functions and curves; use [Diagram: ...] for conceptual geometry/number diagrams
+- Place the diagram tag on its own line
 """.strip(),
 
     "Science": """
@@ -122,12 +133,20 @@ Available diagrams and when to use them:
   [Diagram: plant-cell]                — plant cell structure (cell wall, chloroplasts, vacuole)
   [Diagram: water-cycle]               — evaporation, condensation, precipitation, runoff
   [Diagram: food-chain]                — energy flow from sun → producer → consumers
+  [Diagram: trophic-pyramid]           — energy/biomass pyramid with producer base
   [Diagram: atom-bohr]                 — Bohr model: nucleus, electron shells
   [Diagram: circuit-series]            — series circuit with battery and bulbs
   [Diagram: circuit-parallel]          — parallel circuit with battery and bulbs
   [Diagram: wave-diagram]              — transverse wave: amplitude, wavelength, crest, trough
   [Diagram: particle-states]           — solid, liquid, gas particle arrangement
   [Diagram: electromagnetic-spectrum]  — full EM spectrum from radio to gamma
+  [Diagram: human-body-systems]        — circulatory, digestive, and respiratory systems overview
+  [Diagram: dna-structure]             — DNA double helix with base pairs (A-T, C-G)
+  [Diagram: mitosis-stages]            — prophase, metaphase, anaphase, telophase, cytokinesis
+  [Diagram: rock-cycle]                — igneous, sedimentary, metamorphic with processes
+  [Diagram: ph-scale]                  — pH 0–14 with acid/neutral/alkaline examples
+  [Diagram: force-diagram]             — balanced vs unbalanced forces (Newton's First Law)
+  [Diagram: speed-velocity]            — distance-time and velocity-time graphs
 Rules:
 - Use only ONE diagram tag per response
 - Only use for Science — never for English or Maths
@@ -171,6 +190,9 @@ Available diagrams and when to use them:
   [Diagram: story-arc]            — when discussing narrative arc, plot structure, or Freytag's pyramid
   [Diagram: persuasive-structure] — when explaining persuasive writing (claim, evidence, reasoning, rebuttal)
   [Diagram: argument-map]         — when mapping a thesis and supporting arguments
+  [Diagram: literary-devices]     — when introducing or reviewing multiple literary devices at once
+  [Diagram: narrative-perspective]— when explaining first/second/third person or omniscient narration
+  [Diagram: text-types]           — when explaining different text types and their purposes
 Rules:
 - Use only ONE diagram tag per response
 - Only use for English — never for Science or Maths
