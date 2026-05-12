@@ -1,18 +1,22 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import ChatInterface from './components/ChatInterface';
 import Sidebar from './components/Sidebar';
 import ParentPin from './components/ParentPin';
 import ParentDashboard from './components/ParentDashboard';
 import IntakeForm from './components/IntakeForm';
+import StreakDisplay from './components/StreakDisplay';
+import MilestoneModal from './components/MilestoneModal';
 import { useTheme } from './hooks/useTheme';
 import { useChat } from './hooks/useChat';
 import { useStudentProfile } from './hooks/useStudentProfile';
+import { useStreak } from './hooks/useStreak';
 import { YearLevel, Subject, ALLOWED_YEAR_LEVELS, ALLOWED_SUBJECTS } from './lib/curriculumConfig';
 
 type View = 'chat' | 'parent-pin' | 'parent-dashboard' | 'intake';
 
 export default function App() {
   const { dark, toggle } = useTheme();
+  const { data: streakData, milestone, recordMessage, dismissMilestone } = useStreak();
   // Start open on desktop, closed on mobile
   const [sidebarOpen, setSidebarOpen] = useState(() =>
     typeof window !== 'undefined' ? window.innerWidth >= 768 : true
@@ -39,9 +43,14 @@ export default function App() {
 
   const {
     sessions, currentId, messages, isLoading,
-    sendMessage, startNewChat, loadSession, deleteSession,
+    sendMessage: sendMessageRaw, startNewChat, loadSession, deleteSession,
     togglePin, renameSession, cancelMessage,
   } = useChat({ yearLevel, subject, isNaplanMode, studentProfile: profile });
+
+  const sendMessage = useCallback((msg: string) => {
+    recordMessage();
+    sendMessageRaw(msg);
+  }, [sendMessageRaw, recordMessage]);
 
   // Close sidebar on mobile after selecting a session
   function handleLoadSession(id: string) {
@@ -67,6 +76,9 @@ export default function App() {
 
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-gray-950 overflow-hidden">
+      {milestone !== null && (
+        <MilestoneModal days={milestone} onDismiss={dismissMilestone} />
+      )}
       {/* Mobile backdrop */}
       {sidebarOpen && (
         <div
@@ -159,6 +171,10 @@ export default function App() {
                 </button>
               </>
             )}
+          </div>
+
+          <div className="flex-shrink-0 pl-2">
+            <StreakDisplay data={streakData} />
           </div>
 
         </div>
