@@ -891,6 +891,390 @@ const UnitCircle = () => (
   </svg>
 );
 
+const AngleTypes = () => (
+  <svg viewBox="0 0 580 200" width="100%" style={{ maxHeight: 200 }}>
+    {[
+      { x: 15,  label: 'Acute',       deg: '< 90°',  color: '#3b82f6',
+        pts: [[50,160],[80,80],[110,160]] },
+      { x: 110, label: 'Right',       deg: '= 90°',  color: '#10b981',
+        pts: [[145,160],[145,90],[215,160]] },
+      { x: 220, label: 'Obtuse',      deg: '90°–180°', color: '#f59e0b',
+        pts: [[255,160],[265,90],[340,160]] },
+      { x: 345, label: 'Straight',    deg: '= 180°', color: '#ef4444',
+        pts: [[360,130],[430,130],[500,130]] },
+      { x: 455, label: 'Reflex',      deg: '> 180°', color: '#8b5cf6',
+        pts: [[490,160],[510,80],[540,160]] },
+    ].map(({ x, label, deg, color, pts }, i) => {
+      const [p1, p2, p3] = pts;
+      const isRight = label === 'Right';
+      return (
+        <g key={label}>
+          <rect x={x} y={10} width={100} height={180} rx={6} fill={color} opacity={0.07} stroke={color} strokeWidth={1} />
+          <line x1={p1[0]} y1={p1[1]} x2={p2[0]} y2={p2[1]} stroke={color} strokeWidth={2} />
+          <line x1={p2[0]} y1={p2[1]} x2={p3[0]} y2={p3[1]} stroke={color} strokeWidth={2} />
+          {isRight && <path d={`M ${p2[0]},${p2[1]+15} L ${p2[0]+15},${p2[1]+15} L ${p2[0]+15},${p2[1]}`} fill="none" stroke={color} strokeWidth={1.5} />}
+          <T x={x + 50} y={170} size={9}  weight="bold" fill={color}>{label}</T>
+          <T x={x + 50} y={184} size={8.5} fill="#9ca3af">{deg}</T>
+        </g>
+      );
+    })}
+  </svg>
+);
+
+const TriangleTypes = () => (
+  <svg viewBox="0 0 580 200" width="100%" style={{ maxHeight: 200 }}>
+    {[
+      { x: 10,  label: 'Equilateral', sub: 'All sides equal\nAll angles 60°', color: '#3b82f6',
+        pts: '75,155 115,80 155,155' },
+      { x: 155, label: 'Isosceles',   sub: 'Two sides equal\nTwo angles equal', color: '#10b981',
+        pts: '220,155 270,75 320,155' },
+      { x: 320, label: 'Scalene',     sub: 'No sides equal\nNo angles equal', color: '#f59e0b',
+        pts: '345,155 400,80 455,155' },
+      { x: 455, label: 'Right-angled', sub: 'One angle = 90°\nHyp. is longest', color: '#ef4444',
+        pts: '470,155 470,80 555,155' },
+    ].map(({ x, label, sub, color, pts }) => {
+      const coords = pts.split(' ').map(p => p.split(',').map(Number));
+      const isRight = label === 'Right-angled';
+      return (
+        <g key={label}>
+          <rect x={x} y={8} width={140} height={182} rx={6} fill={color} opacity={0.08} stroke={color} strokeWidth={1} />
+          <polygon points={pts} fill={color} opacity={0.2} stroke={color} strokeWidth={2} />
+          {isRight && <path d={`M ${coords[0][0]},${coords[0][1]-18} L ${coords[0][0]+18},${coords[0][1]-18} L ${coords[0][0]+18},${coords[0][1]}`} fill="none" stroke={color} strokeWidth={1.5} />}
+          <T x={x + 70} y={170} size={9}  weight="bold" fill={color}>{label}</T>
+          {sub.split('\n').map((line, i) => <T key={i} x={x + 70} y={182 + i * 13} size={8} fill="#9ca3af">{line}</T>)}
+        </g>
+      );
+    })}
+  </svg>
+);
+
+const CircleParts = () => (
+  <svg viewBox="0 0 500 310" width="100%" style={{ maxHeight: 310 }}>
+    <circle cx={220} cy={155} r={120} fill="none" stroke="#3b82f6" strokeWidth={2} />
+    <circle cx={220} cy={155} r={3}   fill="#e5e7eb" />
+    {/* Radius */}
+    <line x1={220} y1={155} x2={310} y2={90} stroke="#10b981" strokeWidth={2} />
+    <T x={280} y={108} size={9} fill="#34d399" anchor="start">Radius (r)</T>
+    {/* Diameter */}
+    <line x1={100} y1={155} x2={340} y2={155} stroke="#ef4444" strokeWidth={2} />
+    <T x={220} y={172} size={9} fill="#fca5a5">Diameter (2r)</T>
+    {/* Chord */}
+    <line x1={120} y1={100} x2={310} y2={210} stroke="#f59e0b" strokeWidth={2} />
+    <T x={100} y={90} size={9} fill="#fcd34d" anchor="end">Chord</T>
+    {/* Arc */}
+    <path d="M 130,250 A 120,120 0 0 1 100,155" fill="none" stroke="#8b5cf6" strokeWidth={3} />
+    <T x={55} y={220} size={9} fill="#c4b5fd" anchor="end">Arc</T>
+    {/* Sector */}
+    <path d="M 220,155 L 220,35 A 120,120 0 0 1 330,205 Z" fill="#3b82f6" opacity={0.12} stroke="#3b82f6" strokeWidth={1.5} />
+    <T x={295} y={80} size={9} fill="#60a5fa" anchor="start">Sector</T>
+    {/* Tangent */}
+    <line x1={340} y1={60} x2={340} y2={260} stroke="#06b6d4" strokeWidth={2} strokeDasharray="5 3" />
+    <T x={360} y={155} size={9} fill="#22d3ee" anchor="start">Tangent</T>
+    {/* Circumference label */}
+    <T x={220} y={295} size={9} fill="#9ca3af">Circumference C = 2πr</T>
+    <T x={220} y={15}  size={10} weight="bold" fill="#e5e7eb">Parts of a Circle</T>
+  </svg>
+);
+
+const CartesianPlane = () => (
+  <svg viewBox="0 0 400 360" width="100%" style={{ maxHeight: 360 }}>
+    {arrowDef}
+    <defs>
+      <marker id="arll2" markerWidth="8" markerHeight="8" refX="2" refY="3" orient="auto">
+        <path d="M8,0 L8,6 L0,3 z" fill="#6b7280" />
+      </marker>
+      <marker id="arld2" markerWidth="8" markerHeight="8" refX="3" refY="6" orient="auto">
+        <path d="M0,0 L6,0 L3,8 z" fill="#6b7280" />
+      </marker>
+    </defs>
+    {/* Axes */}
+    <line x1={20}  y1={180} x2={385} y2={180} stroke="#6b7280" strokeWidth={2} markerEnd="url(#arr)" />
+    <line x1={20}  y1={180} x2={5}   y2={180} stroke="#6b7280" strokeWidth={2} markerEnd="url(#arll2)" />
+    <line x1={200} y1={355} x2={200} y2={5}   stroke="#6b7280" strokeWidth={2} markerEnd="url(#arr)" />
+    <T x={390} y={180} size={9} fill="#9ca3af" anchor="start">x</T>
+    <T x={200} y={3}   size={9} fill="#9ca3af">y</T>
+    {/* Ticks */}
+    {[-3,-2,-1,1,2,3].map(n => {
+      const px = 200 + n * 50; const py = 180 + n * 50;
+      return <g key={n}>
+        <line x1={px} y1={175} x2={px} y2={185} stroke="#4b5563" strokeWidth={1} />
+        <T x={px} y={195} size={8} fill="#6b7280">{n}</T>
+        <line x1={195} y1={py} x2={205} y2={py} stroke="#4b5563" strokeWidth={1} />
+        <T x={185} y={py} size={8} fill="#6b7280" anchor="end">{-n}</T>
+      </g>;
+    })}
+    {/* Quadrant labels */}
+    <T x={300} y={90}  size={9} fill="#4b5563">Q1 (+,+)</T>
+    <T x={95}  y={90}  size={9} fill="#4b5563">Q2 (−,+)</T>
+    <T x={95}  y={270} size={9} fill="#4b5563">Q3 (−,−)</T>
+    <T x={300} y={270} size={9} fill="#4b5563">Q4 (+,−)</T>
+    {/* Example points */}
+    {[
+      { x: 300, y: 80,  label: '(2, 2)',   color: '#10b981' },
+      { x: 100, y: 130, label: '(−2, 1)', color: '#f59e0b' },
+      { x: 150, y: 280, label: '(−1,−2)', color: '#ef4444' },
+      { x: 300, y: 280, label: '(2,−2)',  color: '#8b5cf6' },
+    ].map(({ x, y, label, color }) => (
+      <g key={label}>
+        <circle cx={x} cy={y} r={5} fill={color} />
+        <T x={x + 10} y={y - 8} size={8} fill={color} anchor="start">{label}</T>
+      </g>
+    ))}
+    <T x={200} y={350} size={9} fill="#6b7280">Cartesian Plane</T>
+  </svg>
+);
+
+const GradientIntercept = () => (
+  <svg viewBox="0 0 500 300" width="100%" style={{ maxHeight: 300 }}>
+    {arrowDef}
+    {/* Axes */}
+    <line x1={50}  y1={250} x2={470} y2={250} stroke="#4b5563" strokeWidth={1.5} markerEnd="url(#arr)" />
+    <line x1={50}  y1={250} x2={50}  y2={20}  stroke="#4b5563" strokeWidth={1.5} markerEnd="url(#arr)" />
+    <T x={478} y={250} size={9} fill="#9ca3af" anchor="start">x</T>
+    <T x={50}  y={14}  size={9} fill="#9ca3af">y</T>
+    {/* Grid lines */}
+    {[1,2,3,4,5,6].map(n => {
+      const px = 50 + n * 65; const py = 250 - n * 38;
+      return <g key={n}>
+        <line x1={px} y1={246} x2={px} y2={254} stroke="#374151" strokeWidth={1} />
+        <T x={px} y={265} size={8} fill="#6b7280">{n}</T>
+        <line x1={46} y1={py} x2={54} y2={py} stroke="#374151" strokeWidth={1} />
+        <T x={38} y={py} size={8} fill="#6b7280" anchor="end">{n}</T>
+      </g>;
+    })}
+    {/* Line y = 0.58x + 1.5  mapped: y-int at (50,193), slope ~38/65 */}
+    <line x1={50} y1={193} x2={440} y2={48} stroke="#3b82f6" strokeWidth={2.5} />
+    {/* y-intercept */}
+    <circle cx={50} cy={193} r={6} fill="#10b981" />
+    <T x={70} y={188} size={9} fill="#34d399" anchor="start">y-intercept (b)</T>
+    <T x={70} y={201} size={8} fill="#9ca3af" anchor="start">where line crosses y-axis</T>
+    {/* Rise / Run triangle */}
+    <line x1={180} y1={148} x2={310} y2={148} stroke="#f59e0b" strokeWidth={2} strokeDasharray="5 3" />
+    <line x1={310} y1={148} x2={310} y2={99}  stroke="#ef4444" strokeWidth={2} strokeDasharray="5 3" />
+    <T x={245} y={162} size={9} fill="#fcd34d">Run</T>
+    <T x={325} y={125} size={9} fill="#fca5a5" anchor="start">Rise</T>
+    <T x={390} y={78}  size={10} weight="bold" fill="#e5e7eb">y = mx + b</T>
+    <T x={390} y={95}  size={8}  fill="#9ca3af">m = gradient = Rise/Run</T>
+    <T x={390} y={109} size={8}  fill="#9ca3af">b = y-intercept</T>
+  </svg>
+);
+
+const SohCahToa = () => (
+  <svg viewBox="0 0 540 280" width="100%" style={{ maxHeight: 280 }}>
+    {/* Triangle */}
+    <polygon points="60,240 60,60 340,240" fill="#1e3a5f" stroke="#3b82f6" strokeWidth={2} />
+    {/* Right angle */}
+    <path d="M 60,220 L 80,220 L 80,240" fill="none" stroke="#9ca3af" strokeWidth={1.5} />
+    {/* Angle theta arc */}
+    <path d="M 340,240 A 40,40 0 0 0 306,218" fill="none" stroke="#f59e0b" strokeWidth={2} />
+    <T x={305} y={235} size={11} fill="#fcd34d" anchor="end">θ</T>
+    {/* Side labels */}
+    <T x={34}  y={150} size={11} weight="bold" fill="#ef4444" anchor="end">Opposite</T>
+    <T x={200} y={260} size={11} weight="bold" fill="#10b981">Adjacent</T>
+    <T x={205} y={135} size={11} weight="bold" fill="#8b5cf6">Hypotenuse</T>
+    {/* SOH CAH TOA boxes */}
+    {[
+      { x: 370, y: 30,  label: 'SOH', formula: 'sin θ = Opp / Hyp', color: '#ef4444' },
+      { x: 370, y: 105, label: 'CAH', formula: 'cos θ = Adj / Hyp', color: '#10b981' },
+      { x: 370, y: 180, label: 'TOA', formula: 'tan θ = Opp / Adj', color: '#8b5cf6' },
+    ].map(({ x, y, label, formula, color }) => (
+      <g key={label}>
+        <rect x={x} y={y} width={155} height={58} rx={7} fill={color} opacity={0.12} stroke={color} strokeWidth={1.5} />
+        <T x={x + 35} y={y + 22} size={14} weight="bold" fill={color}>{label}</T>
+        <T x={x + 100} y={y + 22} size={8.5} fill="#d1d5db">{formula}</T>
+        <line x1={x + 65} y1={y + 10} x2={x + 65} y2={y + 48} stroke={color} strokeWidth={1} opacity={0.4} />
+      </g>
+    ))}
+    <T x={447} y={258} size={9} fill="#6b7280">SOH CAH TOA</T>
+  </svg>
+);
+
+const ParabolaFeatures = () => (
+  <svg viewBox="0 0 500 310" width="100%" style={{ maxHeight: 310 }}>
+    {arrowDef}
+    {/* Axes */}
+    <line x1={30}  y1={260} x2={475} y2={260} stroke="#4b5563" strokeWidth={1.5} markerEnd="url(#arr)" />
+    <line x1={250} y1={295} x2={250} y2={15}  stroke="#4b5563" strokeWidth={1.5} markerEnd="url(#arr)" />
+    <T x={480} y={260} size={9} fill="#9ca3af" anchor="start">x</T>
+    <T x={250} y={12}  size={9} fill="#9ca3af">y</T>
+    {/* Parabola y = (x-2)^2 - 4, vertex (2,-4), roots at x=0 and x=4, y-int=0 */}
+    {/* Mapped: origin at (170,220), scale 40px per unit */}
+    {/* vertex screen: (170+2*40, 220+4*40) = (250, 380) -- too low, adjust */}
+    {/* Let's place vertex at screen (250,230), roots at (170,170) and (330,170), y-int (210,170) */}
+    {/* y=a(x-h)^2+k, vertex (250,230), scale: pick points */}
+    <path d="M 110,100 Q 250,260 390,100" fill="none" stroke="#3b82f6" strokeWidth={2.5} />
+    {/* Vertex */}
+    <circle cx={250} cy={260} r={6} fill="#f59e0b" />
+    <T x={268} y={258} size={9} fill="#fcd34d" anchor="start">Vertex (h, k)</T>
+    <T x={268} y={272} size={8} fill="#9ca3af" anchor="start">turning point</T>
+    {/* Axis of symmetry */}
+    <line x1={250} y1={30} x2={250} y2={260} stroke="#f59e0b" strokeWidth={1.5} strokeDasharray="6 3" />
+    <T x={255} y={45} size={8} fill="#fcd34d" anchor="start">Axis of symmetry</T>
+    <T x={255} y={57} size={8} fill="#9ca3af" anchor="start">x = h</T>
+    {/* x-intercepts */}
+    <circle cx={130} cy={170} r={6} fill="#10b981" />
+    <circle cx={370} cy={170} r={6} fill="#10b981" />
+    <T x={110} y={155} size={9} fill="#34d399" anchor="end">x-intercept</T>
+    <T x={390} y={155} size={9} fill="#34d399" anchor="start">x-intercept</T>
+    <T x={90}  y={167} size={8} fill="#9ca3af" anchor="end">(roots/zeros)</T>
+    {/* y-intercept */}
+    <circle cx={210} cy={170} r={6} fill="#8b5cf6" />
+    <T x={190} y={155} size={9} fill="#c4b5fd" anchor="end">y-intercept</T>
+    {/* Concave up label */}
+    <T x={250} y={295} size={9} fill="#6b7280">Concave up (a &gt; 0)</T>
+  </svg>
+);
+
+const AreaFormulas = () => (
+  <svg viewBox="0 0 580 260" width="100%" style={{ maxHeight: 260 }}>
+    {[
+      { x: 10, y: 10, color: '#3b82f6', label: 'Rectangle',
+        formula: 'A = l × w',
+        shape: <rect x={30} y={35} width={100} height={55} fill="#3b82f6" opacity={0.2} stroke="#3b82f6" strokeWidth={1.5} />,
+        dim: [<line key="l" x1={30} y1={98} x2={130} y2={98} stroke="#3b82f6" strokeWidth={1} />, <T key="lt" x={80} y={108} size={8} fill="#60a5fa">l</T>, <line key="w" x1={132} y1={35} x2={132} y2={90} stroke="#3b82f6" strokeWidth={1} />, <T key="wt" x={142} y={62} size={8} fill="#60a5fa">w</T>] },
+      { x: 155, y: 10, color: '#10b981', label: 'Triangle',
+        formula: 'A = ½ × b × h',
+        shape: <polygon points="235,90 195,90 255,35" fill="#10b981" opacity={0.2} stroke="#10b981" strokeWidth={1.5} />,
+        dim: [<line key="b" x1={195} y1={97} x2={235} y2={97} stroke="#10b981" strokeWidth={1} />, <T key="bt" x={215} y={107} size={8} fill="#34d399">b</T>, <line key="h" x1={255} y1={35} x2={255} y2={90} stroke="#10b981" strokeWidth={1} strokeDasharray="3 2" />, <T key="ht" x={265} y={62} size={8} fill="#34d399">h</T>] },
+      { x: 300, y: 10, color: '#8b5cf6', label: 'Circle',
+        formula: 'A = π r²',
+        shape: <ellipse cx={375} cy={62} rx={45} ry={45} fill="#8b5cf6" opacity={0.2} stroke="#8b5cf6" strokeWidth={1.5} />,
+        dim: [<line key="r" x1={375} y1={62} x2={420} y2={62} stroke="#8b5cf6" strokeWidth={1.5} />, <T key="rt" x={400} y={55} size={8} fill="#c4b5fd">r</T>] },
+      { x: 10, y: 140, color: '#f59e0b', label: 'Parallelogram',
+        formula: 'A = b × h',
+        shape: <polygon points="50,225 160,225 145,170 35,170" fill="#f59e0b" opacity={0.2} stroke="#f59e0b" strokeWidth={1.5} />,
+        dim: [<line key="b" x1={50} y1={232} x2={160} y2={232} stroke="#f59e0b" strokeWidth={1} />, <T key="bt" x={105} y={242} size={8} fill="#fcd34d">b</T>, <line key="h" x1={165} y1={170} x2={165} y2={225} stroke="#f59e0b" strokeWidth={1} strokeDasharray="3 2" />, <T key="ht" x={175} y={198} size={8} fill="#fcd34d">h</T>] },
+      { x: 200, y: 140, color: '#ef4444', label: 'Trapezium',
+        formula: 'A = ½(a+b)h',
+        shape: <polygon points="230,225 360,225 340,170 250,170" fill="#ef4444" opacity={0.2} stroke="#ef4444" strokeWidth={1.5} />,
+        dim: [<T key="a" x={295} y={165} size={8} fill="#fca5a5">a</T>, <T key="b" x={295} y={235} size={8} fill="#fca5a5">b</T>, <line key="h" x1={365} y1={170} x2={365} y2={225} stroke="#ef4444" strokeWidth={1} strokeDasharray="3 2" />, <T key="ht" x={375} y={198} size={8} fill="#fca5a5">h</T>] },
+    ].map(({ x, y, color, label, formula, shape, dim }) => (
+      <g key={label}>
+        <rect x={x} y={y} width={175} height={120} rx={7} fill={color} opacity={0.06} stroke={color} strokeWidth={1} />
+        {shape}
+        {dim}
+        <T x={x + 88} y={y + 108} size={9} weight="bold" fill={color}>{label}: {formula}</T>
+      </g>
+    ))}
+  </svg>
+);
+
+const OrderOfOperations = () => (
+  <svg viewBox="0 0 560 200" width="100%" style={{ maxHeight: 200 }}>
+    {arrowDef}
+    {[
+      { x: 10,  label: 'B',  title: 'Brackets',             sub: 'Solve inside\n( ) first',             color: '#3b82f6' },
+      { x: 120, label: 'O',  title: 'Orders',               sub: 'Powers & roots\nx², √x',              color: '#8b5cf6' },
+      { x: 230, label: 'D', title: 'Division',              sub: 'Left to right',                       color: '#10b981' },
+      { x: 340, label: 'M',  title: 'Multiplication',       sub: 'Left to right\n(same level as ÷)',    color: '#10b981' },
+      { x: 450, label: 'A',  title: 'Addition',             sub: 'Left to right',                       color: '#f59e0b' },
+    ].map(({ x, label, title, sub, color }, i, arr) => (
+      <g key={label}>
+        <rect x={x} y={15} width={98} height={155} rx={8} fill={color} opacity={0.1} stroke={color} strokeWidth={1.5} />
+        <T x={x + 49} y={50}  size={30} weight="bold" fill={color}>{label}</T>
+        <T x={x + 49} y={88}  size={9}  weight="bold" fill="#e5e7eb">{title}</T>
+        {sub.split('\n').map((line, j) => <T key={j} x={x + 49} y={104 + j * 14} size={8} fill="#9ca3af">{line}</T>)}
+        {i < arr.length - 1 && <line x1={x + 102} y1={92} x2={x + 116} y2={92} stroke="#4b5563" strokeWidth={1.5} markerEnd="url(#arr)" />}
+      </g>
+    ))}
+    {/* D/M bracket */}
+    <rect x={228} y={10} width={210} height={5} rx={2} fill="#10b981" opacity={0.4} />
+    <T x={333} y={8} size={8} fill="#34d399">same priority →</T>
+    {/* A/S bracket — show S too */}
+    <rect x={448} y={10} width={100} height={5} rx={2} fill="#f59e0b" opacity={0.4} />
+    <T x={498} y={8} size={8} fill="#fcd34d">+S same →</T>
+    <T x={280} y={190} size={9} fill="#6b7280">BODMAS — always work left to right at the same level</T>
+  </svg>
+);
+
+const FractionModels = () => (
+  <svg viewBox="0 0 580 220" width="100%" style={{ maxHeight: 220 }}>
+    {[
+      { x: 10,  label: '½',   parts: 2, filled: 1, color: '#3b82f6' },
+      { x: 155, label: '⅓',   parts: 3, filled: 1, color: '#10b981' },
+      { x: 300, label: '¾',   parts: 4, filled: 3, color: '#f59e0b' },
+      { x: 440, label: '²⁄₅', parts: 5, filled: 2, color: '#8b5cf6' },
+    ].map(({ x, label, parts, filled, color }) => {
+      const bw = 130 / parts;
+      return (
+        <g key={label}>
+          {/* Bar model */}
+          {Array.from({ length: parts }, (_, i) => (
+            <rect key={i} x={x + i * bw} y={30} width={bw - 2} height={50} rx={3}
+              fill={i < filled ? color : '#374151'} opacity={i < filled ? 0.7 : 0.4}
+              stroke={color} strokeWidth={1} />
+          ))}
+          {/* Circle model */}
+          <circle cx={x + 65} cy={145} r={38} fill="none" stroke={color} strokeWidth={1.5} opacity={0.5} />
+          {Array.from({ length: parts }, (_, i) => {
+            const startAngle = (i / parts) * 2 * Math.PI - Math.PI / 2;
+            const endAngle   = ((i + 1) / parts) * 2 * Math.PI - Math.PI / 2;
+            const x1 = x + 65 + 38 * Math.cos(startAngle);
+            const y1 = 145 + 38 * Math.sin(startAngle);
+            const x2 = x + 65 + 38 * Math.cos(endAngle);
+            const y2 = 145 + 38 * Math.sin(endAngle);
+            return (
+              <path key={i}
+                d={`M ${x + 65},145 L ${x1},${y1} A 38,38 0 0 1 ${x2},${y2} Z`}
+                fill={i < filled ? color : 'transparent'} opacity={0.5}
+                stroke={color} strokeWidth={1} />
+            );
+          })}
+          <T x={x + 65} y={202} size={16} weight="bold" fill={color}>{label}</T>
+        </g>
+      );
+    })}
+    <T x={290} y={218} size={8} fill="#6b7280">Bar models (top) and circle models (bottom)</T>
+  </svg>
+);
+
+const VennDiagram = () => (
+  <svg viewBox="0 0 500 280" width="100%" style={{ maxHeight: 280 }}>
+    {/* Rectangle border = sample space */}
+    <rect x={20} y={30} width={460} height={220} rx={8} fill="none" stroke="#4b5563" strokeWidth={1.5} strokeDasharray="5 3" />
+    <T x={240} y={22} size={9} fill="#6b7280">Sample Space (ξ)</T>
+    {/* Circle A */}
+    <ellipse cx={185} cy={140} rx={120} ry={95} fill="#3b82f6" opacity={0.18} stroke="#3b82f6" strokeWidth={2} />
+    <T x={120} y={105} size={11} weight="bold" fill="#60a5fa">A</T>
+    {/* Circle B */}
+    <ellipse cx={315} cy={140} rx={120} ry={95} fill="#10b981" opacity={0.18} stroke="#10b981" strokeWidth={2} />
+    <T x={380} y={105} size={11} weight="bold" fill="#34d399">B</T>
+    {/* Labels */}
+    <T x={120} y={145} size={9} fill="#93c5fd">A only</T>
+    <T x={120} y={159} size={8} fill="#6b7280">in A, not B</T>
+    <T x={250} y={140} size={9} weight="bold" fill="#e5e7eb">A ∩ B</T>
+    <T x={250} y={154} size={8} fill="#9ca3af">in both</T>
+    <T x={380} y={145} size={9} fill="#6ee7b7">B only</T>
+    <T x={380} y={159} size={8} fill="#6b7280">in B, not A</T>
+    <T x={50}  y={230} size={8} fill="#6b7280">Neither</T>
+    {/* Formula hints */}
+    <T x={250} y={260} size={8.5} fill="#9ca3af">P(A ∪ B) = P(A) + P(B) − P(A ∩ B)</T>
+  </svg>
+);
+
+const IndexLaws = () => (
+  <svg viewBox="0 0 580 280" width="100%" style={{ maxHeight: 280 }}>
+    {[
+      { y: 15,  label: 'Multiplication',  rule: 'aᵐ × aⁿ = aᵐ⁺ⁿ', ex: '3² × 3⁴ = 3⁶',   color: '#3b82f6' },
+      { y: 60,  label: 'Division',        rule: 'aᵐ ÷ aⁿ = aᵐ⁻ⁿ', ex: '5⁷ ÷ 5³ = 5⁴',   color: '#10b981' },
+      { y: 105, label: 'Power of a power', rule: '(aᵐ)ⁿ = aᵐⁿ',    ex: '(2³)⁴ = 2¹²',    color: '#8b5cf6' },
+      { y: 150, label: 'Zero index',      rule: 'a⁰ = 1',           ex: '7⁰ = 1',          color: '#f59e0b' },
+      { y: 195, label: 'Negative index',  rule: 'a⁻ⁿ = 1/aⁿ',      ex: '2⁻³ = 1/8',       color: '#ef4444' },
+      { y: 240, label: 'Fractional index', rule: 'a^(1/n) = ⁿ√a',  ex: '9^(½) = √9 = 3',  color: '#06b6d4' },
+    ].map(({ y, label, rule, ex, color }) => (
+      <g key={label}>
+        <rect x={10}  y={y} width={555} height={38} rx={5} fill={color} opacity={0.08} stroke={color} strokeWidth={1} />
+        <T x={95}  y={y + 19} size={9}  weight="bold" fill={color} anchor="end">{label}</T>
+        <line x1={100} y1={y + 5} x2={100} y2={y + 33} stroke="#374151" strokeWidth={1} />
+        <T x={310} y={y + 19} size={11} weight="bold" fill="#e5e7eb">{rule}</T>
+        <line x1={430} y1={y + 5} x2={430} y2={y + 33} stroke="#374151" strokeWidth={1} />
+        <T x={495} y={y + 19} size={9}  fill="#9ca3af" anchor="middle">{ex}</T>
+      </g>
+    ))}
+    <T x={290} y={275} size={8} fill="#6b7280">Index Laws — only apply when the base (a) is the same</T>
+  </svg>
+);
+
 // ── Diagram registry ──────────────────────────────────────────────────────────
 
 export const DIAGRAM_MAP: Record<string, { title: string; icon: string; render: () => React.ReactElement }> = {
@@ -923,9 +1307,21 @@ export const DIAGRAM_MAP: Record<string, { title: string; icon: string; render: 
   'force-diagram':             { title: 'Balanced & Unbalanced Forces',     icon: '⚖️', render: () => <ForceDiagram /> },
   'speed-velocity':            { title: 'Distance–Time & Velocity–Time Graphs', icon: '📈', render: () => <SpeedVelocity /> },
   // Maths
-  'pythagoras':    { title: "Pythagoras' Theorem",  icon: '📐', render: () => <Pythagoras /> },
-  'number-line':   { title: 'Number Line',          icon: '↔️', render: () => <NumberLine /> },
-  'unit-circle':   { title: 'Unit Circle',          icon: '⭕', render: () => <UnitCircle /> },
+  'angle-types':          { title: 'Types of Angles',               icon: '📐', render: () => <AngleTypes /> },
+  'triangle-types':       { title: 'Types of Triangles',            icon: '🔺', render: () => <TriangleTypes /> },
+  'circle-parts':         { title: 'Parts of a Circle',             icon: '⭕', render: () => <CircleParts /> },
+  'cartesian-plane':      { title: 'Cartesian Plane',               icon: '📊', render: () => <CartesianPlane /> },
+  'gradient-intercept':   { title: 'Gradient & Y-Intercept',        icon: '📈', render: () => <GradientIntercept /> },
+  'soh-cah-toa':          { title: 'SOH CAH TOA — Trigonometry',    icon: '📐', render: () => <SohCahToa /> },
+  'parabola-features':    { title: 'Features of a Parabola',        icon: '∪',  render: () => <ParabolaFeatures /> },
+  'area-formulas':        { title: 'Area Formulas',                  icon: '📐', render: () => <AreaFormulas /> },
+  'order-of-operations':  { title: 'Order of Operations (BODMAS)',  icon: '🔢', render: () => <OrderOfOperations /> },
+  'fraction-models':      { title: 'Fraction Models',               icon: '½',  render: () => <FractionModels /> },
+  'venn-diagram':         { title: 'Venn Diagram',                  icon: '⭕', render: () => <VennDiagram /> },
+  'index-laws':           { title: 'Index Laws',                    icon: '🔢', render: () => <IndexLaws /> },
+  'pythagoras':           { title: "Pythagoras' Theorem",           icon: '📐', render: () => <Pythagoras /> },
+  'number-line':          { title: 'Number Line',                   icon: '↔️', render: () => <NumberLine /> },
+  'unit-circle':          { title: 'Unit Circle',                   icon: '⭕', render: () => <UnitCircle /> },
 };
 
 // ── Widget component ──────────────────────────────────────────────────────────

@@ -92,9 +92,21 @@ Giving $x = 3$ or $x = -1$.
 DIAGRAM PROTOCOL (Maths only — use alongside graphs where appropriate):
 [Diagram: <key>]
 Available diagrams and when to use them:
-  [Diagram: pythagoras]  — when teaching Pythagoras' theorem or right-triangle problems
-  [Diagram: number-line] — when explaining integers, fractions, negatives, or ordering numbers
-  [Diagram: unit-circle] — when introducing trigonometric ratios on the unit circle (Year 10)
+  [Diagram: number-line]         — integers, fractions, negatives, ordering numbers (Yr 7–8)
+  [Diagram: fraction-models]     — visualising fractions as bar or circle models (Yr 7)
+  [Diagram: order-of-operations] — BODMAS step-by-step priority (Yr 7–8)
+  [Diagram: angle-types]         — acute, right, obtuse, straight, reflex (Yr 7–8)
+  [Diagram: triangle-types]      — equilateral, isosceles, scalene, right-angled (Yr 7–8)
+  [Diagram: area-formulas]       — rectangle, triangle, circle, parallelogram, trapezium (Yr 7–9)
+  [Diagram: circle-parts]        — radius, diameter, chord, arc, sector, tangent (Yr 8–9)
+  [Diagram: index-laws]          — all 6 index laws with examples (Yr 8–9)
+  [Diagram: cartesian-plane]     — four quadrants, plotting points (Yr 8)
+  [Diagram: gradient-intercept]  — y=mx+b, rise/run, y-intercept (Yr 8–9)
+  [Diagram: pythagoras]          — right triangle with a²+b²=c² (Yr 8–9)
+  [Diagram: venn-diagram]        — A, B, intersection, neither for probability (Yr 8–10)
+  [Diagram: soh-cah-toa]         — SOH CAH TOA with labelled triangle (Yr 9–10)
+  [Diagram: parabola-features]   — vertex, axis of symmetry, x/y-intercepts (Yr 10)
+  [Diagram: unit-circle]         — sin/cos on unit circle, quadrants (Yr 10)
 Rules:
 - Use only ONE diagram tag per response
 - Prefer [Graph: ...] for functions and curves; use [Diagram: ...] for conceptual geometry/number diagrams
