@@ -12,7 +12,7 @@ export default function StreakDisplay({ data }: Props) {
     <div className="flex items-center gap-1 flex-shrink-0 select-none" title={`${current_streak} day streak`}>
       <span
         className="text-lg leading-none transition-all duration-300"
-        style={{ filter: dailyGoalMet ? 'none' : 'grayscale(1) opacity(0.45)' }}
+        style={{ filter: dailyGoalMet ? 'none' : 'grayscale(1) opacity(0.7)' }}
       >
         🔥
       </span>
@@ -20,7 +20,7 @@ export default function StreakDisplay({ data }: Props) {
         className={`text-sm font-semibold tabular-nums transition-colors duration-300 ${
           dailyGoalMet
             ? 'text-orange-500 dark:text-orange-400'
-            : 'text-gray-400 dark:text-gray-600'
+            : 'text-gray-400 dark:text-gray-300'
         }`}
       >
         {current_streak}
