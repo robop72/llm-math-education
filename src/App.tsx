@@ -60,6 +60,7 @@ export default function App() {
     <IntakeForm
       onComplete={p => { saveProfile(p); setView('chat'); }}
       onBack={() => setView('chat')}
+      onClear={() => { clearProfile(); setView('chat'); }}
       initialProfile={profile}
     />
   );

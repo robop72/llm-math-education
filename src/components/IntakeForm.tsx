@@ -48,6 +48,7 @@ const DEFAULT_DRAFT: IntakeQuestionnaire = {
 interface Props {
   onComplete: (profile: StudentProfile) => void;
   onBack: () => void;
+  onClear?: () => void;
   initialProfile?: StudentProfile | null;
 }
 
@@ -320,7 +321,7 @@ function Step4({ draft, onChange }: { draft: IntakeQuestionnaire; onChange: (p: 
 
 const STEP_TITLES = ['Student details', 'Subjects', 'Performance', 'Preferences'];
 
-export default function IntakeForm({ onComplete, onBack, initialProfile }: Props) {
+export default function IntakeForm({ onComplete, onBack, onClear, initialProfile }: Props) {
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
   const [draft, setDraft] = useState<IntakeQuestionnaire>(() => {
     if (initialProfile) {
@@ -381,7 +382,18 @@ export default function IntakeForm({ onComplete, onBack, initialProfile }: Props
           <div className="flex items-center gap-3">
             <img src="/voxii-logo.png" alt="Voxii AI" className="h-8 object-contain" />
           </div>
-          <div />
+          {initialProfile && onClear && (
+            <button
+              type="button"
+              onClick={onClear}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-red-500 dark:text-red-400 border border-red-300 dark:border-red-700/60 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+              Clear profile
+            </button>
+          )}
         </div>
 
         {/* Progress bar */}
