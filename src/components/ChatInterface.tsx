@@ -13,6 +13,7 @@ interface Props {
   isLoading: boolean;
   sendMessage: (text: string) => void;
   cancelMessage: () => void;
+  studentName?: string;
 }
 
 const THINKING_PHRASES = [
@@ -61,18 +62,20 @@ function ThinkingBubble() {
 }
 
 function WelcomeScreen({
-  yearLevel, subject, onSend,
+  yearLevel, subject, onSend, studentName,
 }: {
   yearLevel: YearLevel;
   subject: Subject;
   onSend: (prompt: string) => void;
+  studentName?: string;
 }) {
+  const greeting = studentName ? `Hi ${studentName}!` : 'Hello!';
   return (
     // Outer: takes flex-1, scrollable so input bar is never hidden
     <div className="flex-1 min-h-0 overflow-y-auto scrollbar-none">
       {/* Inner: centers content when there's space, or just stacks from top */}
       <div className="flex flex-col items-center justify-center min-h-full px-4 sm:px-6 py-4 sm:py-6 max-w-3xl mx-auto w-full">
-        <p className="text-gray-500 dark:text-gray-400 text-base sm:text-lg mb-0.5">Hello,</p>
+        <p className="text-gray-500 dark:text-gray-400 text-base sm:text-lg mb-0.5">{greeting}</p>
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-0.5 text-center">
           I'm your {subject} study friend
         </h1>
@@ -95,7 +98,7 @@ function WelcomeScreen({
 
 export default function ChatInterface({
   yearLevel, subject, isNaplanMode = false,
-  messages, isLoading, sendMessage, cancelMessage,
+  messages, isLoading, sendMessage, cancelMessage, studentName,
 }: Props) {
   const [input, setInput] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -143,7 +146,7 @@ export default function ChatInterface({
           {isLoading && <ThinkingBubble />}
         </div>
       ) : (
-        <WelcomeScreen yearLevel={yearLevel} subject={subject} onSend={handleCardSelect} />
+        <WelcomeScreen yearLevel={yearLevel} subject={subject} onSend={handleCardSelect} studentName={studentName} />
       )}
 
       {/* Input bar */}

@@ -175,6 +175,7 @@ export default function App() {
             isLoading={isLoading}
             sendMessage={sendMessage}
             cancelMessage={cancelMessage}
+            studentName={profile?.student_name || undefined}
           />
         </div>
       </div>

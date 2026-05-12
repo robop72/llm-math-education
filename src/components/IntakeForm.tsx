@@ -90,7 +90,7 @@ function Step1({ draft, onChange }: { draft: IntakeQuestionnaire; onChange: (p: 
   return (
     <div className="space-y-5">
       <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Student name <span className="text-gray-400 font-normal">(optional)</span></label>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">First name <span className="text-gray-400 font-normal">(optional)</span></label>
         <input
           value={draft.student_name}
           onChange={e => onChange({ student_name: e.target.value })}

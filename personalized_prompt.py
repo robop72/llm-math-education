@@ -70,7 +70,11 @@ def _build_personalization_layer(profile: dict) -> str:
     focus = profile.get("focus_limit_minutes", 20)
     goals = profile.get("primary_goals", [])
 
-    name_line = f'Address the student as "{name}".' if name else ""
+    name_line = (
+        f'The student\'s first name is {name}. Use it occasionally and naturally — '
+        f'for example when opening a new topic, giving encouragement, or wrapping up. '
+        f'Do not use it on every message or it will feel forced.'
+    ) if name else ""
     goals_line = f"This student's primary goals are: {', '.join(goals)}." if goals else ""
 
     return f"""
