@@ -82,10 +82,10 @@ function WelcomeScreen({
 
         <StarterCards yearLevel={yearLevel} subject={subject} onSelect={onSend} />
 
-        <div className="w-full flex items-start gap-3 p-3 sm:p-4 rounded-2xl border border-blue-300 dark:border-blue-700/50 bg-blue-50 dark:bg-blue-900/20 mt-4 sm:mt-5">
-          <span className="text-blue-500 dark:text-blue-400 mt-0.5 flex-shrink-0">🔒</span>
-          <p className="text-xs sm:text-sm text-gray-700 dark:text-gray-300">
-            <span className="font-semibold text-white">Stay safe:</span> Don't share your full name, school, phone number, or address in this chat. Voxii is here for {subject.toLowerCase()} only.
+        <div className="w-full flex items-start gap-2 px-3 py-2 rounded-xl border border-blue-300 dark:border-blue-700/50 bg-blue-50 dark:bg-blue-900/20 mt-3 sm:mt-4">
+          <span className="text-blue-500 dark:text-blue-400 text-xs mt-0.5 flex-shrink-0">🔒</span>
+          <p className="text-[11px] text-gray-600 dark:text-gray-400 leading-snug">
+            <span className="font-semibold text-gray-800 dark:text-gray-200">Stay safe:</span> Don't share your name, school, or contact details. Voxii is here for {subject.toLowerCase()} only.
           </p>
         </div>
       </div>
@@ -105,18 +105,17 @@ export default function ChatInterface({
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
   }, [messages, isLoading]);
 
-  function autoResize() {
+  useEffect(() => {
     const el = textareaRef.current;
     if (!el) return;
     el.style.height = 'auto';
     el.style.height = `${Math.min(el.scrollHeight, 128)}px`;
-  }
+  }, [input]);
 
   async function handleSend() {
     const text = input.trim();
     if (!text || isLoading) return;
     setInput('');
-    if (textareaRef.current) textareaRef.current.style.height = 'auto';
     sendMessage(text);
   }
 
@@ -163,7 +162,7 @@ export default function ChatInterface({
               ref={textareaRef}
               rows={1}
               value={input}
-              onChange={e => { setInput(e.target.value); autoResize(); }}
+              onChange={e => setInput(e.target.value)}
               onKeyDown={handleKey}
               placeholder={`Ask Voxii a ${subject} question…`}
               className="flex-1 bg-transparent outline-none resize-none text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 scrollbar-none"
