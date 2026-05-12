@@ -3,10 +3,13 @@ import sys
 sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
 
 import os
+import re
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import Response
 from pydantic import BaseModel
 from typing import Optional, List, Dict, Any
+from google.cloud import texttospeech
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI
 from langchain_chroma import Chroma
 from langchain_community.chat_message_histories import ChatMessageHistory
@@ -77,6 +80,9 @@ class ChatRequest(BaseModel):
     is_naplan_mode: bool = False
     student_profile: Optional[Dict[str, Any]] = None
 
+class TTSRequest(BaseModel):
+    text: str
+
 # 5. Intake Endpoint
 @app.post("/intake")
 async def intake(request: IntakeRequest):
@@ -101,7 +107,35 @@ async def root():
         "database_synced": os.path.exists("./vcaa_json_index")
     }
 
-# 6. The Expert Chat Endpoint
+_TTS_STRIP = re.compile(
+    r'\[Graph:[^\]]*\]|\[Diagram:[^\]]*\]|\[Image of [^\]]*\]'   # widget tags
+    r'|\$\$[\s\S]+?\$\$|\$[^$\n]+\$'                             # LaTeX
+    r'|```[\s\S]+?```'                                            # code blocks
+    r'|[*_#`]',                                                   # markdown syntax
+    re.IGNORECASE,
+)
+
+# 7. TTS Endpoint
+@app.post("/tts")
+async def tts(request: TTSRequest):
+    clean = _TTS_STRIP.sub(' ', request.text)
+    clean = re.sub(r'\s+', ' ', clean).strip()[:4000]
+    client = texttospeech.TextToSpeechClient()
+    synthesis_input = texttospeech.SynthesisInput(text=clean)
+    voice = texttospeech.VoiceSelectionParams(
+        language_code="en-AU",
+        name="en-AU-Standard-A",
+    )
+    audio_config = texttospeech.AudioConfig(
+        audio_encoding=texttospeech.AudioEncoding.MP3,
+        speaking_rate=0.95,
+    )
+    tts_response = client.synthesize_speech(
+        input=synthesis_input, voice=voice, audio_config=audio_config
+    )
+    return Response(content=tts_response.audio_content, media_type="audio/mpeg")
+
+# 8. The Expert Chat Endpoint
 @app.post("/chat")
 async def chat(request: ChatRequest):
     history = get_session_history(request.session_id)

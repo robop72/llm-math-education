@@ -1,5 +1,21 @@
-import React, { useRef, useEffect, useState } from 'react';
-import { Mic, Send } from 'lucide-react';
+import React, { useRef, useEffect, useState, useCallback } from 'react';
+import { Mic, MicOff, Send, Square, Volume2 } from 'lucide-react';
+
+const API = import.meta.env.VITE_API_URL ?? 'https://voxii-tutor-backend-919882895306.australia-southeast1.run.app';
+
+function stripForTTS(text: string): string {
+  return text
+    .replace(/\[Graph:[^\]]*\]/gi, 'a graph')
+    .replace(/\[Diagram:[^\]]*\]/gi, 'a diagram')
+    .replace(/\[Image of [^\]]*\]/gi, 'an image')
+    .replace(/\$\$[\s\S]+?\$\$/g, 'a mathematical formula')
+    .replace(/\$[^$\n]+\$/g, 'a formula')
+    .replace(/```[\s\S]+?```/g, 'a code example')
+    .replace(/[*_#`]/g, '')
+    .replace(/\n+/g, '. ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
 import ExpertMessage from './ExpertMessage';
 import StarterCards from './StarterCards';
 import { Message } from '../hooks/useChat';
@@ -66,8 +82,12 @@ export default function ChatInterface({
   messages, isLoading, sendMessage, cancelMessage, studentName,
 }: Props) {
   const [input, setInput] = useState('');
+  const [isReading, setIsReading] = useState(false);
+  const [isListening, setIsListening] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const recognitionRef = useRef<any>(null);
 
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -87,6 +107,63 @@ export default function ChatInterface({
     sendMessage(text);
   }
 
+  const handleReadAloud = useCallback(async () => {
+    if (isReading) {
+      audioRef.current?.pause();
+      audioRef.current = null;
+      setIsReading(false);
+      return;
+    }
+    const lastTutor = [...messages].reverse().find(m => m.role === 'tutor');
+    if (!lastTutor) return;
+    const cleanText = stripForTTS(lastTutor.text).slice(0, 4000);
+    setIsReading(true);
+    try {
+      const res = await fetch(`${API}/tts`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: cleanText }),
+      });
+      if (!res.ok) throw new Error('TTS failed');
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const audio = new Audio(url);
+      audioRef.current = audio;
+      audio.onended = () => { setIsReading(false); URL.revokeObjectURL(url); };
+      audio.onerror = () => { setIsReading(false); URL.revokeObjectURL(url); };
+      audio.play();
+    } catch {
+      setIsReading(false);
+    }
+  }, [isReading, messages]);
+
+  const handleMic = useCallback(() => {
+    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SR) return;
+    if (isListening) {
+      recognitionRef.current?.stop();
+      return;
+    }
+    const rec = new SR();
+    rec.lang = 'en-AU';
+    rec.interimResults = false;
+    rec.maxAlternatives = 1;
+    recognitionRef.current = rec;
+    rec.onresult = (e: any) => {
+      const transcript = e.results[0][0].transcript;
+      setInput(prev => prev ? `${prev} ${transcript}` : transcript);
+      setIsListening(false);
+    };
+    rec.onerror = () => setIsListening(false);
+    rec.onend = () => setIsListening(false);
+    rec.start();
+    setIsListening(true);
+  }, [isListening]);
+
+  const hasMicSupport = typeof window !== 'undefined' &&
+    ((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition);
+  const hasLastTutorMsg = messages.some(m => m.role === 'tutor');
+
   function handleKey(e: React.KeyboardEvent) {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); }
   }
@@ -96,12 +173,18 @@ export default function ChatInterface({
 
   const inputBar = (
     <div className="flex items-end gap-2 bg-gray-100/80 dark:bg-gray-800/80 border border-gray-300 dark:border-gray-700 rounded-3xl px-4 py-3 focus-within:border-gray-400 dark:focus-within:border-gray-600 transition-colors">
-      <button className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-xs font-medium hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">
-        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" />
-        </svg>
-        Read Aloud
+      <button
+        onClick={handleReadAloud}
+        disabled={!hasLastTutorMsg}
+        title={isReading ? 'Stop reading' : 'Read last response aloud'}
+        className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors disabled:opacity-30 disabled:cursor-not-allowed ${
+          isReading
+            ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400'
+            : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
+        }`}
+      >
+        {isReading ? <Square size={12} /> : <Volume2 size={12} />}
+        {isReading ? 'Stop' : 'Read Aloud'}
       </button>
 
       <textarea
@@ -117,9 +200,19 @@ export default function ChatInterface({
       />
 
       <div className="flex items-center gap-2 flex-shrink-0">
-        <button className="p-1.5 text-gray-500 hover:text-gray-300 transition-colors" title="Voice input">
-          <Mic size={18} />
-        </button>
+        {hasMicSupport && (
+          <button
+            onClick={handleMic}
+            title={isListening ? 'Stop listening' : 'Speak your question'}
+            className={`p-1.5 transition-colors rounded-full ${
+              isListening
+                ? 'text-red-500 animate-pulse'
+                : 'text-gray-500 hover:text-gray-300'
+            }`}
+          >
+            {isListening ? <MicOff size={18} /> : <Mic size={18} />}
+          </button>
+        )}
         <button
           onClick={isLoading ? cancelMessage : handleSend}
           disabled={!isLoading && !input.trim()}
