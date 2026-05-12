@@ -71,26 +71,17 @@ function WelcomeScreen({
 }) {
   const greeting = studentName ? `Hi ${studentName}!` : 'Hello!';
   return (
-    // Outer: takes flex-1, scrollable so input bar is never hidden
     <div className="flex-1 min-h-0 overflow-y-auto scrollbar-none">
-      {/* Inner: centers content when there's space, or just stacks from top */}
-      <div className="flex flex-col items-center justify-center min-h-full px-4 sm:px-6 py-4 sm:py-6 max-w-3xl mx-auto w-full">
+      <div className="flex flex-col items-center justify-center min-h-full px-4 sm:px-6 py-6 sm:py-8 max-w-2xl mx-auto w-full">
         <p className="text-gray-500 dark:text-gray-400 text-base sm:text-lg mb-0.5">{greeting}</p>
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-0.5 text-center">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-1 text-center">
           I'm your {subject} study friend
         </h1>
-        <p className="text-gray-500 text-xs sm:text-sm mb-4 sm:mb-5 text-center">
+        <p className="text-gray-500 text-xs sm:text-sm mb-5 text-center">
           Secondary School · Year {yearLevel} · Victorian Curriculum 2.0
         </p>
 
         <StarterCards yearLevel={yearLevel} subject={subject} onSelect={onSend} />
-
-        <div className="w-full flex items-start gap-2 px-3 py-2 rounded-xl border border-blue-300 dark:border-blue-700/50 bg-blue-50 dark:bg-blue-900/20 mt-3 sm:mt-4">
-          <span className="text-blue-500 dark:text-blue-400 text-xs mt-0.5 flex-shrink-0">🔒</span>
-          <p className="text-[11px] text-gray-600 dark:text-gray-400 leading-snug">
-            <span className="font-semibold text-gray-800 dark:text-gray-200">Stay safe:</span> Don't share your name, school, or contact details. Voxii is here for {subject.toLowerCase()} only.
-          </p>
-        </div>
       </div>
     </div>
   );
@@ -151,7 +142,7 @@ export default function ChatInterface({
 
       {/* Input bar */}
       <div className="px-3 sm:px-6 pb-3 sm:pb-4 pt-2 bg-gray-50 dark:bg-gray-950 flex-shrink-0">
-        <div className="max-w-3xl mx-auto">
+        <div className="max-w-2xl mx-auto">
           <div className="flex items-end gap-2 bg-gray-100/80 dark:bg-gray-800/80 border border-gray-300 dark:border-gray-700 rounded-3xl px-4 py-3 focus-within:border-gray-400 dark:focus-within:border-gray-600 transition-colors">
             <button className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-xs font-medium hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -186,7 +177,17 @@ export default function ChatInterface({
               </button>
             </div>
           </div>
-          <p className="text-[10px] text-gray-400 dark:text-gray-600 text-center mt-2">Enter to send · Shift+Enter for new line</p>
+
+          {!hasMessages && (
+            <div className="flex items-start gap-2 px-3 py-2 rounded-xl border border-blue-300 dark:border-blue-700/50 bg-blue-50 dark:bg-blue-900/20 mt-2">
+              <span className="text-blue-500 dark:text-blue-400 text-xs mt-0.5 flex-shrink-0">🔒</span>
+              <p className="text-[11px] text-gray-600 dark:text-gray-400 leading-snug">
+                <span className="font-semibold text-gray-800 dark:text-gray-200">Stay safe:</span> Don't share your name, school, or contact details. Voxii is here for {subject.toLowerCase()} only.
+              </p>
+            </div>
+          )}
+
+          <p className="text-[10px] text-gray-400 dark:text-gray-600 text-center mt-1.5">Enter to send · Shift+Enter for new line</p>
         </div>
       </div>
     </div>

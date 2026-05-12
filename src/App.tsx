@@ -160,10 +160,6 @@ export default function App() {
             )}
           </div>
 
-          {/* Logo — top right */}
-          <div className="flex-shrink-0 ml-2">
-            <img src="/voxii-logo.png" alt="Voxii AI" className="h-7 sm:h-8 object-contain" />
-          </div>
         </div>
 
         <div className="flex-1 min-h-0">
