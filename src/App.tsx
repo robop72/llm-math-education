@@ -89,7 +89,11 @@ export default function App() {
           <div className="flex items-center gap-2 overflow-x-auto scrollbar-none flex-1 min-w-0">
             <select
               value={yearLevel}
-              onChange={e => setYearLevel(Number(e.target.value) as YearLevel)}
+              onChange={e => {
+              const y = Number(e.target.value) as YearLevel;
+              setYearLevel(y);
+              if (y !== 7 && y !== 9) setIsNaplanMode(false);
+            }}
               className="flex-shrink-0 px-3 py-1.5 rounded-full text-sm font-medium bg-gray-800 text-gray-300 outline-none cursor-pointer hover:bg-gray-700 transition-colors border border-gray-700"
             >
               {ALLOWED_YEAR_LEVELS.map(y => (
@@ -113,7 +117,7 @@ export default function App() {
               </button>
             ))}
 
-            {subject !== 'Science' && (
+            {subject !== 'Science' && (yearLevel === 7 || yearLevel === 9) && (
               <>
                 <div className="w-px h-5 bg-gray-800 flex-shrink-0" />
                 <button
