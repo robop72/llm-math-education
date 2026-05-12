@@ -11,7 +11,10 @@ type View = 'chat' | 'parent-pin' | 'parent-dashboard';
 
 export default function App() {
   const { dark, toggle } = useTheme();
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  // Start open on desktop, closed on mobile
+  const [sidebarOpen, setSidebarOpen] = useState(() =>
+    typeof window !== 'undefined' ? window.innerWidth >= 768 : true
+  );
   const [yearLevel, setYearLevel] = useState<YearLevel>(9);
   const [subject, setSubject] = useState<Subject>('Maths');
   const [isNaplanMode, setIsNaplanMode] = useState(false);
@@ -29,16 +32,35 @@ export default function App() {
     togglePin, renameSession, cancelMessage,
   } = useChat({ yearLevel, subject, isNaplanMode });
 
+  // Close sidebar on mobile after selecting a session
+  function handleLoadSession(id: string) {
+    loadSession(id);
+    if (window.innerWidth < 768) setSidebarOpen(false);
+  }
+
+  function handleNewChat() {
+    startNewChat();
+    if (window.innerWidth < 768) setSidebarOpen(false);
+  }
+
   if (view === 'parent-pin') return <ParentPin onSuccess={() => setView('parent-dashboard')} onBack={() => setView('chat')} />;
   if (view === 'parent-dashboard') return <ParentDashboard onBack={() => setView('chat')} />;
 
   return (
     <div className="flex h-screen bg-gray-950 overflow-hidden">
+      {/* Mobile backdrop */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/60 z-30 md:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       <Sidebar
         sessions={sessions}
         currentId={currentId}
-        onNewChat={startNewChat}
-        onLoadSession={loadSession}
+        onNewChat={handleNewChat}
+        onLoadSession={handleLoadSession}
         onDeleteSession={deleteSession}
         onTogglePin={togglePin}
         onRenameSession={renameSession}
@@ -50,52 +72,67 @@ export default function App() {
       />
 
       <div className="flex flex-col flex-1 min-w-0">
-        {/* Top selector bar */}
-        <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-800 bg-gray-950 overflow-x-auto scrollbar-none flex-shrink-0">
-          <select
-            value={yearLevel}
-            onChange={e => setYearLevel(Number(e.target.value) as YearLevel)}
-            className="flex-shrink-0 px-3 py-1.5 rounded-full text-sm font-medium bg-gray-800 text-gray-300 outline-none cursor-pointer hover:bg-gray-700 transition-colors border border-gray-700"
+        {/* Top bar */}
+        <div className="flex items-center gap-2 px-3 py-2.5 border-b border-gray-800 bg-gray-950 flex-shrink-0">
+          {/* Mobile hamburger */}
+          <button
+            className="md:hidden p-1.5 text-gray-400 hover:text-gray-200 flex-shrink-0 transition-colors"
+            onClick={() => setSidebarOpen(o => !o)}
+            aria-label="Menu"
           >
-            {ALLOWED_YEAR_LEVELS.map(y => (
-              <option key={y} value={y}>Year {y}</option>
-            ))}
-          </select>
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
 
-          <div className="w-px h-5 bg-gray-800 flex-shrink-0" />
-
-          {ALLOWED_SUBJECTS.map(s => (
-            <button
-              key={s}
-              onClick={() => { setSubject(s); if (s === 'Science') setIsNaplanMode(false); }}
-              className={`flex-shrink-0 px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
-                subject === s
-                  ? 'bg-blue-500 text-white shadow-sm'
-                  : 'bg-gray-800 text-gray-400 hover:bg-gray-700 border border-gray-700'
-              }`}
+          {/* Scrollable controls */}
+          <div className="flex items-center gap-2 overflow-x-auto scrollbar-none flex-1 min-w-0">
+            <select
+              value={yearLevel}
+              onChange={e => setYearLevel(Number(e.target.value) as YearLevel)}
+              className="flex-shrink-0 px-3 py-1.5 rounded-full text-sm font-medium bg-gray-800 text-gray-300 outline-none cursor-pointer hover:bg-gray-700 transition-colors border border-gray-700"
             >
-              {s}
-            </button>
-          ))}
+              {ALLOWED_YEAR_LEVELS.map(y => (
+                <option key={y} value={y}>Year {y}</option>
+              ))}
+            </select>
 
-          {subject !== 'Science' && (
-            <>
-              <div className="w-px h-5 bg-gray-800 flex-shrink-0" />
+            <div className="w-px h-5 bg-gray-800 flex-shrink-0" />
+
+            {ALLOWED_SUBJECTS.map(s => (
               <button
-                onClick={() => setIsNaplanMode(m => !m)}
-                className={`flex-shrink-0 px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
-                  isNaplanMode
-                    ? 'bg-amber-500 text-white shadow-sm'
+                key={s}
+                onClick={() => { setSubject(s); if (s === 'Science') setIsNaplanMode(false); }}
+                className={`flex-shrink-0 px-3 sm:px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
+                  subject === s
+                    ? 'bg-blue-500 text-white shadow-sm'
                     : 'bg-gray-800 text-gray-400 hover:bg-gray-700 border border-gray-700'
                 }`}
               >
-                NAPLAN
+                {s}
               </button>
-            </>
-          )}
+            ))}
 
-          <div className="ml-auto flex-shrink-0">
-            <img src="/voxii-logo.png" alt="Voxii AI" className="h-8 object-contain" />
+            {subject !== 'Science' && (
+              <>
+                <div className="w-px h-5 bg-gray-800 flex-shrink-0" />
+                <button
+                  onClick={() => setIsNaplanMode(m => !m)}
+                  className={`flex-shrink-0 px-3 sm:px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
+                    isNaplanMode
+                      ? 'bg-amber-500 text-white shadow-sm'
+                      : 'bg-gray-800 text-gray-400 hover:bg-gray-700 border border-gray-700'
+                  }`}
+                >
+                  NAPLAN
+                </button>
+              </>
+            )}
+          </div>
+
+          {/* Logo — top right */}
+          <div className="flex-shrink-0 ml-2">
+            <img src="/voxii-logo.png" alt="Voxii AI" className="h-7 sm:h-8 object-contain" />
           </div>
         </div>
 

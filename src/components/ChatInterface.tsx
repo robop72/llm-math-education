@@ -68,18 +68,26 @@ function WelcomeScreen({
   onSend: (prompt: string) => void;
 }) {
   return (
-    <div className="flex-1 flex flex-col items-center justify-center px-6 py-12 max-w-3xl mx-auto w-full">
-      <p className="text-gray-400 text-lg mb-1">Hello,</p>
-      <h1 className="text-3xl font-bold text-white mb-1">I'm your {subject} study friend</h1>
-      <p className="text-gray-500 text-sm mb-8">Secondary School · Year {yearLevel} · Victorian Curriculum 2.0</p>
-
-      <StarterCards yearLevel={yearLevel} subject={subject} onSelect={onSend} />
-
-      <div className="w-full flex items-start gap-3 p-4 rounded-2xl border border-blue-700/50 bg-blue-900/20 mt-6">
-        <span className="text-blue-400 mt-0.5">🔒</span>
-        <p className="text-sm text-gray-300">
-          <span className="font-semibold text-white">Stay safe:</span> Don't share your full name, school, phone number, or address in this chat. Voxii is here for {subject.toLowerCase()} only.
+    // Outer: takes flex-1, scrollable so input bar is never hidden
+    <div className="flex-1 min-h-0 overflow-y-auto scrollbar-none">
+      {/* Inner: centers content when there's space, or just stacks from top */}
+      <div className="flex flex-col items-center justify-center min-h-full px-4 sm:px-6 py-4 sm:py-6 max-w-3xl mx-auto w-full">
+        <p className="text-gray-400 text-base sm:text-lg mb-0.5">Hello,</p>
+        <h1 className="text-2xl sm:text-3xl font-bold text-white mb-0.5 text-center">
+          I'm your {subject} study friend
+        </h1>
+        <p className="text-gray-500 text-xs sm:text-sm mb-4 sm:mb-5 text-center">
+          Secondary School · Year {yearLevel} · Victorian Curriculum 2.0
         </p>
+
+        <StarterCards yearLevel={yearLevel} subject={subject} onSelect={onSend} />
+
+        <div className="w-full flex items-start gap-3 p-3 sm:p-4 rounded-2xl border border-blue-700/50 bg-blue-900/20 mt-4 sm:mt-5">
+          <span className="text-blue-400 mt-0.5 flex-shrink-0">🔒</span>
+          <p className="text-xs sm:text-sm text-gray-300">
+            <span className="font-semibold text-white">Stay safe:</span> Don't share your full name, school, phone number, or address in this chat. Voxii is here for {subject.toLowerCase()} only.
+          </p>
+        </div>
       </div>
     </div>
   );
@@ -117,7 +125,7 @@ export default function ChatInterface({
   return (
     <div className="flex flex-col h-full bg-gray-950">
       {hasMessages ? (
-        <div ref={scrollRef} className="flex-1 overflow-y-auto px-6 py-6 flex flex-col scrollbar-none">
+        <div ref={scrollRef} className="flex-1 min-h-0 overflow-y-auto px-4 sm:px-6 py-4 sm:py-6 flex flex-col scrollbar-none">
           {messages.map((msg: Message) => (
             <div key={msg.id} className={msg.role === 'user' ? 'voxii-bubble-user' : 'voxii-bubble-tutor'}>
               {msg.role === 'tutor'
@@ -132,7 +140,7 @@ export default function ChatInterface({
       )}
 
       {/* Input bar */}
-      <div className="px-6 pb-4 pt-2 bg-gray-950">
+      <div className="px-3 sm:px-6 pb-3 sm:pb-4 pt-2 bg-gray-950 flex-shrink-0">
         <div className="max-w-3xl mx-auto">
           <div className="flex items-end gap-2 bg-gray-800/80 border border-gray-700 rounded-3xl px-4 py-3 focus-within:border-gray-600 transition-colors">
             <button className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gray-700 text-gray-300 text-xs font-medium hover:bg-gray-600 transition-colors">

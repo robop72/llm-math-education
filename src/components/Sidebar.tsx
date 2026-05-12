@@ -179,7 +179,16 @@ export default function Sidebar({
 
   return (
     <>
-      <aside className={`flex-shrink-0 flex flex-col h-full bg-[#0f1117] border-r border-gray-800 transition-all duration-300 ${isOpen ? 'w-[280px]' : 'w-14'}`}>
+      <aside className={`
+        flex-shrink-0 flex flex-col h-full bg-[#0f1117] border-r border-gray-800
+        transition-[transform,width] duration-300 ease-in-out
+        fixed inset-y-0 left-0 z-40
+        md:relative md:z-auto md:translate-x-0
+        ${isOpen
+          ? 'w-[280px] translate-x-0'
+          : 'w-[280px] -translate-x-full md:w-14'
+        }
+      `}>
 
         {/* Logo row */}
         <div className={`flex items-center px-4 pt-5 pb-3 ${isOpen ? 'justify-between' : 'justify-center'}`}>
