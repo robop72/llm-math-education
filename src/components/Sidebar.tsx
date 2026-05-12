@@ -12,6 +12,7 @@ interface Props {
   onToggleTheme: () => void;
   isOpen: boolean;
   onToggle: () => void;
+  onOpenParentPortal: () => void;
 }
 
 function timeLabel(ts: number) {
@@ -65,7 +66,7 @@ function SessionRow({ s, currentId, onLoadSession, onDeleteSession, onTogglePin 
   );
 }
 
-export default function Sidebar({ sessions, currentId, onNewChat, onLoadSession, onDeleteSession, onTogglePin, dark, onToggleTheme, isOpen, onToggle }: Props) {
+export default function Sidebar({ sessions, currentId, onNewChat, onLoadSession, onDeleteSession, onTogglePin, dark, onToggleTheme, isOpen, onToggle, onOpenParentPortal }: Props) {
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   const withMessages = sessions.filter(s => s.messages.length > 0);
@@ -85,16 +86,10 @@ export default function Sidebar({ sessions, currentId, onNewChat, onLoadSession,
       {/* Logo row */}
       <div className={`flex items-center px-4 pt-5 pb-3 ${isOpen ? 'justify-between' : 'justify-center'}`}>
         {isOpen && (
-          <div className="flex items-center gap-2">
-            {/* Voxii globe icon */}
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-cyan-500 flex items-center justify-center shadow-lg">
-              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 2a10 10 0 100 20A10 10 0 0012 2z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M2 12h20M12 2c-2.5 3-4 6.5-4 10s1.5 7 4 10M12 2c2.5 3 4 6.5 4 10s-1.5 7-4 10" />
-              </svg>
-            </div>
-            <span className="text-white font-semibold text-base tracking-tight">voxii <span className="text-blue-400">AI</span></span>
-          </div>
+          <img src="/voxii-logo.png" alt="Voxii AI" className="h-7 object-contain" />
+        )}
+        {!isOpen && (
+          <img src="/voxii-favicon.png" alt="Voxii" className="w-7 h-7 object-contain" />
         )}
         <div className="flex items-center gap-1">
           <button onClick={onToggle} className="p-1.5 rounded-full hover:bg-gray-800 text-gray-500 hover:text-gray-300 transition-colors" title={isOpen ? 'Collapse' : 'Expand'}>
@@ -154,7 +149,7 @@ export default function Sidebar({ sessions, currentId, onNewChat, onLoadSession,
       {/* Bottom: Parent Portal + Settings */}
       {isOpen && (
         <div className="border-t border-gray-800 px-3 py-3 space-y-1">
-          <button className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm text-gray-400 hover:bg-gray-800 transition-colors">
+          <button onClick={onOpenParentPortal} className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm text-gray-400 hover:bg-gray-800 transition-colors">
             <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>

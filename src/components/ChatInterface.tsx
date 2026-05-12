@@ -28,12 +28,47 @@ const TOPIC_CARDS: Record<string, { emoji: string; title: string; desc: string }
   ],
 };
 
+const THINKING_PHRASES = [
+  'Voxii is thinking…',
+  'Voxii is compiling a response…',
+  'Voxii is finding the right approach…',
+  'Voxii is working through this…',
+  'Voxii is checking the curriculum…',
+  'Voxii is crafting an explanation…',
+];
+
 function ThinkingBubble() {
+  const [phraseIdx, setPhraseIdx] = React.useState(0);
+
+  React.useEffect(() => {
+    const id = setInterval(() => setPhraseIdx(i => (i + 1) % THINKING_PHRASES.length), 2200);
+    return () => clearInterval(id);
+  }, []);
+
   return (
-    <div className="voxii-thinking-bubble">
-      {[0, 150, 300].map(delay => (
-        <span key={delay} className="w-2 h-2 bg-gray-400 rounded-full" style={{ animation: `thinking-dot 1.2s ease-in-out ${delay}ms infinite` }} />
-      ))}
+    <div className="flex items-center gap-3 py-3 px-1">
+      <img
+        src="/voxii-favicon.png"
+        alt=""
+        className="w-7 h-7 object-contain"
+        style={{ animation: 'voxii-spin 2s linear infinite' }}
+      />
+      <span className="text-sm text-gray-400" style={{ animation: 'voxii-fade 2.2s ease-in-out infinite' }}>
+        {THINKING_PHRASES[phraseIdx]}
+      </span>
+      <style>{`
+        @keyframes voxii-spin {
+          0%   { transform: rotate(0deg) scale(1); }
+          25%  { transform: rotate(90deg) scale(1.08); }
+          50%  { transform: rotate(180deg) scale(1); }
+          75%  { transform: rotate(270deg) scale(1.08); }
+          100% { transform: rotate(360deg) scale(1); }
+        }
+        @keyframes voxii-fade {
+          0%, 100% { opacity: 0.5; }
+          50%       { opacity: 1; }
+        }
+      `}</style>
     </div>
   );
 }

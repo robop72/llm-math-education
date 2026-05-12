@@ -1,11 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ChatInterface from './components/ChatInterface';
 import Sidebar from './components/Sidebar';
+import ParentPin from './components/ParentPin';
+import ParentDashboard from './components/ParentDashboard';
 import { useTheme } from './hooks/useTheme';
 import { useChat } from './hooks/useChat';
 
 const YEAR_LEVELS = ['Year 7', 'Year 8', 'Year 9', 'Year 10', 'Year 11', 'Year 12'];
 const SUBJECTS = ['English', 'Maths', 'Science'];
+
+type View = 'chat' | 'parent-pin' | 'parent-dashboard';
 
 export default function App() {
   const { dark, toggle } = useTheme();
@@ -13,8 +17,24 @@ export default function App() {
   const [yearLevel, setYearLevel] = useState('Year 9');
   const [subject, setSubject] = useState('Maths');
   const [isNaplanMode, setIsNaplanMode] = useState(false);
+  const [view, setView] = useState<View>('chat');
 
-  const { sessions, currentId, messages, isLoading, sendMessage, startNewChat, loadSession, deleteSession, togglePin, cancelMessage } = useChat({ yearLevel, subject, isNaplanMode });
+  // Auto-redirect if already authenticated
+  useEffect(() => {
+    if (view === 'parent-pin' && sessionStorage.getItem('voxii-parent-auth') === 'true') {
+      setView('parent-dashboard');
+    }
+  }, [view]);
+
+  const { sessions, currentId, messages, isLoading, sendMessage, startNewChat, loadSession, deleteSession, togglePin, cancelMessage } =
+    useChat({ yearLevel, subject, isNaplanMode });
+
+  if (view === 'parent-pin') {
+    return <ParentPin onSuccess={() => setView('parent-dashboard')} onBack={() => setView('chat')} />;
+  }
+  if (view === 'parent-dashboard') {
+    return <ParentDashboard onBack={() => setView('chat')} />;
+  }
 
   return (
     <div className="flex h-screen bg-gray-950 overflow-hidden">
@@ -29,6 +49,7 @@ export default function App() {
         onToggleTheme={toggle}
         isOpen={sidebarOpen}
         onToggle={() => setSidebarOpen(o => !o)}
+        onOpenParentPortal={() => setView('parent-pin')}
       />
 
       <div className="flex flex-col flex-1 min-w-0">
@@ -71,6 +92,11 @@ export default function App() {
               </button>
             </>
           )}
+
+          {/* Logo — top right */}
+          <div className="ml-auto flex-shrink-0">
+            <img src="/voxii-logo.png" alt="Voxii AI" className="h-8 object-contain" />
+          </div>
         </div>
 
         <div className="flex-1 min-h-0">
