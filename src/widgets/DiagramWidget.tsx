@@ -1480,6 +1480,217 @@ const PeriodicTableStructure = () => (
   </svg>
 );
 
+// ── Statistics Diagrams ───────────────────────────────────────────────────────
+
+const BoxPlot = () => (
+  <svg viewBox="0 0 560 220" width="100%" style={{ maxHeight: 220 }}>
+    {arrowDef}
+    {/* Axis */}
+    <line x1={40} y1={130} x2={530} y2={130} stroke="#4b5563" strokeWidth={1.5} markerEnd="url(#arr)" />
+    {[10,20,30,40,50,60,70,80,90,100].map(n => {
+      const x = 40 + (n / 100) * 480;
+      return <g key={n}>
+        <line x1={x} y1={125} x2={x} y2={135} stroke="#6b7280" strokeWidth={1} />
+        <T x={x} y={145} size={8} fill="#9ca3af">{n}</T>
+      </g>;
+    })}
+    {/* Box plot: min=18, Q1=35, median=52, Q3=68, max=88 */}
+    {(() => {
+      const sc = (v: number) => 40 + (v / 100) * 480;
+      const min=18, q1=35, med=52, q3=68, max=88;
+      const y=100, h=40;
+      return <>
+        {/* Whiskers */}
+        <line x1={sc(min)} y1={y+h/2} x2={sc(q1)}  y2={y+h/2} stroke="#9ca3af" strokeWidth={1.5} />
+        <line x1={sc(q3)}  y1={y+h/2} x2={sc(max)}  y2={y+h/2} stroke="#9ca3af" strokeWidth={1.5} />
+        <line x1={sc(min)} y1={y+8}    x2={sc(min)}  y2={y+h-8} stroke="#9ca3af" strokeWidth={2} />
+        <line x1={sc(max)} y1={y+8}    x2={sc(max)}  y2={y+h-8} stroke="#9ca3af" strokeWidth={2} />
+        {/* Box */}
+        <rect x={sc(q1)} y={y} width={sc(q3)-sc(q1)} height={h} fill="#3b82f6" opacity={0.2} stroke="#3b82f6" strokeWidth={2} />
+        {/* Median line */}
+        <line x1={sc(med)} y1={y} x2={sc(med)} y2={y+h} stroke="#ef4444" strokeWidth={2.5} />
+        {/* Labels */}
+        <T x={sc(min)}  y={y-12} size={8} fill="#9ca3af">Min</T>
+        <T x={sc(min)}  y={y-3}  size={8} fill="#9ca3af">{min}</T>
+        <T x={sc(q1)}   y={y-12} size={8} fill="#60a5fa">Q1</T>
+        <T x={sc(q1)}   y={y-3}  size={8} fill="#60a5fa">{q1}</T>
+        <T x={sc(med)}  y={y-12} size={8} fill="#fca5a5">Median</T>
+        <T x={sc(med)}  y={y-3}  size={8} fill="#fca5a5">{med}</T>
+        <T x={sc(q3)}   y={y-12} size={8} fill="#60a5fa">Q3</T>
+        <T x={sc(q3)}   y={y-3}  size={8} fill="#60a5fa">{q3}</T>
+        <T x={sc(max)}  y={y-12} size={8} fill="#9ca3af">Max</T>
+        <T x={sc(max)}  y={y-3}  size={8} fill="#9ca3af">{max}</T>
+        {/* IQR brace */}
+        <line x1={sc(q1)} y1={y+h+18} x2={sc(q3)} y2={y+h+18} stroke="#10b981" strokeWidth={1.5} />
+        <line x1={sc(q1)} y1={y+h+14} x2={sc(q1)} y2={y+h+22} stroke="#10b981" strokeWidth={1.5} />
+        <line x1={sc(q3)} y1={y+h+14} x2={sc(q3)} y2={y+h+22} stroke="#10b981" strokeWidth={1.5} />
+        <T x={(sc(q1)+sc(q3))/2} y={y+h+30} size={8} fill="#34d399">IQR = Q3 − Q1 = {q3-q1}</T>
+      </>;
+    })()}
+    <T x={285} y={195} size={8} fill="#6b7280">Box Plot (Box-and-Whisker Plot) — shows spread and centre of data</T>
+  </svg>
+);
+
+const DataTypes = () => (
+  <svg viewBox="0 0 540 260" width="100%" style={{ maxHeight: 260 }}>
+    {arrowDef}
+    {/* Root */}
+    <rect x={195} y={10} width={150} height={40} rx={7} fill="#374151" stroke="#6b7280" strokeWidth={1.5} />
+    <T x={270} y={30} size={10} weight="bold" fill="#e5e7eb">DATA</T>
+    {/* Branches to categorical and numerical */}
+    <line x1={270} y1={50}  x2={115} y2={90}  stroke="#6b7280" strokeWidth={1.5} />
+    <line x1={270} y1={50}  x2={425} y2={90}  stroke="#6b7280" strokeWidth={1.5} />
+    {/* Categorical */}
+    <rect x={35} y={90} width={160} height={40} rx={7} fill="#1e3a5f" stroke="#3b82f6" strokeWidth={1.5} />
+    <T x={115} y={110} size={10} weight="bold" fill="#60a5fa">Categorical</T>
+    <T x={115} y={145} size={8} fill="#9ca3af">Names or labels</T>
+    <T x={115} y={158} size={8} fill="#9ca3af">e.g. colour, gender, sport</T>
+    {/* Nominal and Ordinal under categorical */}
+    <line x1={115} y1={130} x2={65}  y2={175} stroke="#3b82f6" strokeWidth={1} />
+    <line x1={115} y1={130} x2={165} y2={175} stroke="#3b82f6" strokeWidth={1} />
+    <rect x={15}  y={175} width={100} height={42} rx={5} fill="#3b82f6" opacity={0.12} stroke="#3b82f6" strokeWidth={1} />
+    <T x={65}  y={193} size={8} weight="bold" fill="#60a5fa">Nominal</T>
+    <T x={65}  y={207} size={7.5} fill="#9ca3af">No order (colours)</T>
+    <rect x={120} y={175} width={100} height={42} rx={5} fill="#3b82f6" opacity={0.12} stroke="#3b82f6" strokeWidth={1} />
+    <T x={170} y={193} size={8} weight="bold" fill="#60a5fa">Ordinal</T>
+    <T x={170} y={207} size={7.5} fill="#9ca3af">Has order (grades)</T>
+    {/* Numerical */}
+    <rect x={345} y={90} width={160} height={40} rx={7} fill="#14532d" stroke="#10b981" strokeWidth={1.5} />
+    <T x={425} y={110} size={10} weight="bold" fill="#34d399">Numerical</T>
+    <T x={425} y={145} size={8} fill="#9ca3af">Counts or measurements</T>
+    <T x={425} y={158} size={8} fill="#9ca3af">e.g. height, score, age</T>
+    {/* Discrete and Continuous under numerical */}
+    <line x1={425} y1={130} x2={375} y2={175} stroke="#10b981" strokeWidth={1} />
+    <line x1={425} y1={130} x2={475} y2={175} stroke="#10b981" strokeWidth={1} />
+    <rect x={325} y={175} width={100} height={42} rx={5} fill="#10b981" opacity={0.12} stroke="#10b981" strokeWidth={1} />
+    <T x={375} y={193} size={8} weight="bold" fill="#34d399">Discrete</T>
+    <T x={375} y={207} size={7.5} fill="#9ca3af">Whole numbers (goals)</T>
+    <rect x={430} y={175} width={100} height={42} rx={5} fill="#10b981" opacity={0.12} stroke="#10b981" strokeWidth={1} />
+    <T x={480} y={193} size={8} weight="bold" fill="#34d399">Continuous</T>
+    <T x={480} y={207} size={7.5} fill="#9ca3af">Any value (temp)</T>
+    <T x={270} y={250} size={8} fill="#6b7280">Understanding data type determines which graph and statistics to use</T>
+  </svg>
+);
+
+const MeasuresCentre = () => (
+  <svg viewBox="0 0 540 250" width="100%" style={{ maxHeight: 250 }}>
+    {/* Dataset */}
+    <T x={270} y={18} size={10} weight="bold" fill="#e5e7eb">Dataset: 4, 7, 7, 9, 12, 15, 15, 15, 18</T>
+    {/* Number line showing data points */}
+    <line x1={30} y1={55} x2={510} y2={55} stroke="#4b5563" strokeWidth={1.5} />
+    {[4,7,7,9,12,15,15,15,18].map((v, i) => {
+      const x = 30 + ((v - 2) / 18) * 480;
+      return <g key={i}>
+        <line x1={x} y1={50} x2={x} y2={60} stroke="#6b7280" strokeWidth={1} />
+        <circle cx={x} cy={40} r={5} fill="#3b82f6" opacity={0.7} />
+      </g>;
+    })}
+    {/* Four stat boxes */}
+    {[
+      { x: 10,  color: '#3b82f6', label: 'Mean',   symbol: 'x̄', value: '= 102 ÷ 9 ≈ 11.3',
+        method: 'Add all values\nthen divide by count', result: '≈ 11.3' },
+      { x: 145, color: '#10b981', label: 'Median', symbol: 'M', value: '= 12',
+        method: 'Middle value when\ndata is ordered', result: '12' },
+      { x: 280, color: '#f59e0b', label: 'Mode',   symbol: 'Mo', value: '= 15',
+        method: 'Most frequently\noccurring value', result: '15' },
+      { x: 415, color: '#ef4444', label: 'Range',  symbol: 'R', value: '= 18 − 4',
+        method: 'Max minus\nmin value', result: '14' },
+    ].map(({ x, color, label, symbol, value, method, result }) => (
+      <g key={label}>
+        <rect x={x} y={75} width={120} height={158} rx={8} fill={color} opacity={0.1} stroke={color} strokeWidth={1.5} />
+        <T x={x+60} y={100} size={22} weight="bold" fill={color}>{symbol}</T>
+        <T x={x+60} y={126} size={10} weight="bold" fill="#e5e7eb">{label}</T>
+        {method.split('\n').map((line, i) => <T key={i} x={x+60} y={144+i*14} size={8} fill="#9ca3af">{line}</T>)}
+        <line x1={x+15} y1={176} x2={x+105} y2={176} stroke={color} strokeWidth={1} opacity={0.4} />
+        <T x={x+60} y={192} size={9} fill={color}>{value}</T>
+        <rect x={x+20} y={204} width={80} height={22} rx={4} fill={color} opacity={0.2} />
+        <T x={x+60} y={215} size={11} weight="bold" fill={color}>{result}</T>
+      </g>
+    ))}
+  </svg>
+);
+
+const StemAndLeaf = () => (
+  <svg viewBox="0 0 500 280" width="100%" style={{ maxHeight: 280 }}>
+    <T x={250} y={16} size={10} weight="bold" fill="#e5e7eb">Stem-and-Leaf Plot</T>
+    <T x={250} y={30} size={8}  fill="#9ca3af">Dataset: 12, 15, 18, 21, 23, 23, 27, 31, 34, 38, 41, 45</T>
+    {/* Headers */}
+    <T x={135} y={55} size={9} weight="bold" fill="#9ca3af" anchor="end">Stem</T>
+    <T x={155} y={55} size={9} weight="bold" fill="#9ca3af" anchor="start">Leaf</T>
+    <line x1={50} y1={60} x2={450} y2={60} stroke="#374151" strokeWidth={1} />
+    {/* Stem | Leaf rows */}
+    {[
+      { stem: '1', leaves: '2  5  8', note: '12, 15, 18' },
+      { stem: '2', leaves: '1  3  3  7', note: '21, 23, 23, 27' },
+      { stem: '3', leaves: '1  4  8', note: '31, 34, 38' },
+      { stem: '4', leaves: '1  5', note: '41, 45' },
+    ].map(({ stem, leaves, note }, i) => {
+      const y = 85 + i * 40;
+      return <g key={stem}>
+        <rect x={50} y={y-16} width={400} height={36} rx={4} fill={i%2===0 ? '#1f2937' : '#111827'} />
+        <T x={130} y={y} size={13} weight="bold" fill="#e5e7eb" anchor="end">{stem}</T>
+        <line x1={138} y1={y-14} x2={138} y2={y+14} stroke="#4b5563" strokeWidth={2} />
+        <T x={155} y={y} size={13} fill="#60a5fa" anchor="start">{leaves}</T>
+        <T x={420} y={y} size={8} fill="#6b7280" anchor="end">{note}</T>
+      </g>;
+    })}
+    {/* Key */}
+    <rect x={50} y={245} width={400} height={28} rx={4} fill="#1f2937" />
+    <T x={250} y={259} size={9} fill="#9ca3af">Key: 2 | 3 means 23   ·   Stem = tens digit   ·   Leaf = units digit</T>
+    {/* Back label */}
+    <T x={250} y={278} size={8} fill="#6b7280">Back-to-back plots compare two datasets using the same stem</T>
+  </svg>
+);
+
+const TwoWayTable = () => (
+  <svg viewBox="0 0 520 270" width="100%" style={{ maxHeight: 270 }}>
+    <T x={260} y={16} size={10} weight="bold" fill="#e5e7eb">Two-Way Frequency Table</T>
+    <T x={260} y={30} size={8}  fill="#9ca3af">Example: sport preference by year level</T>
+    {/* Table structure */}
+    {(() => {
+      const cols = ['', 'Football', 'Basketball', 'Swimming', 'TOTAL'];
+      const rows = [
+        { label: 'Year 9', vals: [18, 12, 10, 40], color: '#3b82f6' },
+        { label: 'Year 10', vals: [14, 16, 10, 40], color: '#10b981' },
+        { label: 'TOTAL',  vals: [32, 28, 20, 80], color: '#6b7280' },
+      ];
+      const cw = 92, rh = 38, ox = 25, oy = 50;
+      return <>
+        {/* Column headers */}
+        {cols.map((c, ci) => (
+          <g key={ci}>
+            <rect x={ox + ci*cw} y={oy} width={cw} height={rh} fill={ci===0?'#111827':'#1e3a5f'} stroke="#374151" strokeWidth={1} />
+            <T x={ox + ci*cw + cw/2} y={oy+rh/2} size={ci===0?0:9} weight="bold" fill="#93c5fd">{c}</T>
+          </g>
+        ))}
+        {/* Data rows */}
+        {rows.map(({ label, vals, color }, ri) => (
+          <g key={label}>
+            {/* Row label */}
+            <rect x={ox} y={oy+(ri+1)*rh} width={cw} height={rh} fill="#1f2937" stroke="#374151" strokeWidth={1} />
+            <T x={ox+cw/2} y={oy+(ri+1)*rh+rh/2} size={9} weight="bold" fill={color}>{label}</T>
+            {/* Values */}
+            {vals.map((v, ci) => {
+              const isTotal = ci === 3 || ri === 2;
+              return <g key={ci}>
+                <rect x={ox+(ci+1)*cw} y={oy+(ri+1)*rh} width={cw} height={rh}
+                  fill={isTotal ? '#1f2937' : '#111827'} stroke="#374151" strokeWidth={1} />
+                <T x={ox+(ci+1)*cw+cw/2} y={oy+(ri+1)*rh+rh/2} size={isTotal?11:12}
+                  weight={isTotal?'bold':'normal'} fill={isTotal?color:'#e5e7eb'}>{v}</T>
+              </g>;
+            })}
+          </g>
+        ))}
+        {/* Annotations */}
+        <T x={260} y={210} size={8} fill="#9ca3af">Row totals → 40 + 40 = 80 ✓  |  Column totals → 32 + 28 + 20 = 80 ✓</T>
+        <T x={260} y={225} size={8} fill="#6b7280">P(Football | Yr 9) = 18/40 = 0.45   Relative frequency = cell ÷ grand total</T>
+        <rect x={25} y={235} width={470} height={28} rx={4} fill="#1f2937" />
+        <T x={260} y={252} size={8} fill="#9ca3af">Grand total (bottom-right) = sum of all rows = sum of all columns</T>
+      </>;
+    })()}
+  </svg>
+);
+
 // ── Diagram registry ──────────────────────────────────────────────────────────
 
 export const DIAGRAM_MAP: Record<string, { title: string; icon: string; minWidth: number; render: () => React.ReactElement }> = {
@@ -1528,6 +1739,11 @@ export const DIAGRAM_MAP: Record<string, { title: string; icon: string; minWidth
   'order-of-operations':  { title: 'Order of Operations (BODMAS)',      icon: '🔢', minWidth: 500, render: () => <OrderOfOperations /> },
   'fraction-models':      { title: 'Fraction Models',                   icon: '½',  minWidth: 500, render: () => <FractionModels /> },
   'scatter-plot':         { title: 'Scatter Plot Correlation',           icon: '📊', minWidth: 500, render: () => <ScatterPlotCorrelation /> },
+  'box-plot':             { title: 'Box Plot (Box-and-Whisker)',        icon: '📦', minWidth: 500, render: () => <BoxPlot /> },
+  'data-types':           { title: 'Types of Data',                    icon: '🗂️', minWidth: 460, render: () => <DataTypes /> },
+  'measures-of-centre':   { title: 'Measures of Centre & Spread',      icon: '📊', minWidth: 480, render: () => <MeasuresCentre /> },
+  'stem-and-leaf':        { title: 'Stem-and-Leaf Plot',               icon: '🌿', minWidth: 440, render: () => <StemAndLeaf /> },
+  'two-way-table':        { title: 'Two-Way Frequency Table',          icon: '📋', minWidth: 460, render: () => <TwoWayTable /> },
   'venn-diagram':         { title: 'Venn Diagram',                      icon: '⭕', minWidth: 380, render: () => <VennDiagram /> },
   'index-laws':           { title: 'Index Laws',                        icon: '🔢', minWidth: 500, render: () => <IndexLaws /> },
   'pythagoras':           { title: "Pythagoras' Theorem",               icon: '📐', minWidth: 400, render: () => <Pythagoras /> },

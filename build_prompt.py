@@ -108,7 +108,12 @@ Available diagrams and when to use them:
   [Diagram: pythagoras]           — right triangle with a²+b²=c² (Yr 8–9)
   [Diagram: venn-diagram]         — A, B, intersection, neither for probability (Yr 8–10)
   [Diagram: soh-cah-toa]          — SOH CAH TOA with labelled triangle (Yr 9–10)
+  [Diagram: data-types]           — categorical vs numerical, discrete vs continuous (Yr 8–9)
+  [Diagram: measures-of-centre]   — mean, median, mode, range with worked example (Yr 7–9)
+  [Diagram: stem-and-leaf]        — stem-and-leaf plot structure and key (Yr 8–9)
   [Diagram: scatter-plot]         — positive, negative, and no correlation (Yr 9–10)
+  [Diagram: box-plot]             — min, Q1, median, Q3, max, IQR labelled (Yr 9–10)
+  [Diagram: two-way-table]        — frequency table with row/column/grand totals (Yr 9–10)
   [Diagram: parabola-features]    — vertex, axis of symmetry, x/y-intercepts (Yr 10)
   [Diagram: unit-circle]          — sin/cos on unit circle, quadrants (Yr 10)
 Rules:
