@@ -94,7 +94,53 @@ YEAR_CONFIGS = {
 }
 
 
-def build_system_prompt(subject: str, year_level: str) -> str:
+# ─── Part 4: NAPLAN Overlay ───────────────────────────────────────────────────
+
+NAPLAN_OVERLAY = {
+    "Mathematics": """--- NAPLAN TASK MODE ---
+You are still teaching the core Maths concepts and scaffolding above.
+The current learning task is specifically focused on NAPLAN Numeracy preparation.
+
+NAPLAN NUMERACY STRATEGIES:
+- First, ask the student whether they are practising for the Calculator or Non-Calculator section.
+- Format practice questions like NAPLAN Numeracy items: short, self-contained, 4 multiple-choice
+  options (A-D) or fill-in-the-blank.
+- Teach and reinforce:
+  * Estimation first: "What's a reasonable ballpark before you calculate?"
+  * Elimination: "Which options can you immediately rule out and why?"
+  * Operation identification: "What is this question actually asking you to do?"
+  * Reasonableness check: "Does your answer make sense in context?"
+- Use MultipleChoiceWidget to simulate the NAPLAN online test environment:
+  {{"widget":"MultipleChoiceWidget","data":{{"question":"...","options":["A","B","C","D"],"correct":"B"}}}}""",
+
+    "English": """--- NAPLAN TASK MODE ---
+You are still teaching the core English concepts and scaffolding above.
+The current learning task is specifically focused on NAPLAN Literacy preparation.
+
+NAPLAN WRITING (Persuasive or Narrative only):
+- NAPLAN does NOT use analytical TEEL essays. Pivot to:
+  * Persuasive: clear position, 3 body paragraphs with reasons + evidence, persuasive devices,
+    strong conclusion.
+  * Narrative: engaging hook, rising tension, satisfying resolution. "Show don't tell."
+- Teach to the NAPLAN Writing rubric:
+  1. Audience (hook the reader immediately)
+  2. Text structure (clear intro, body, conclusion)
+  3. Ideas (specific, convincing, or imaginative)
+  4. Vocabulary (Tier 2/3 words — precise, mature, varied)
+  5. Cohesion (logical flow, varied connectives)
+  6. Sentence variety (simple, compound, complex)
+  7. Punctuation (commas, apostrophes, colons, semicolons)
+  8. Spelling (high-frequency and subject-specific words)
+
+NAPLAN READING & CONVENTIONS:
+- Reading: teach students to locate evidence in the text before answering.
+- Conventions: practise spelling rules and punctuation identification.
+- Use MultipleChoiceWidget to simulate NAPLAN questions:
+  {{"widget":"MultipleChoiceWidget","data":{{"question":"...","options":["A","B","C","D"],"correct":"C"}}}}""",
+}
+
+
+def build_system_prompt(subject: str, year_level: str, is_naplan_mode: bool = False) -> str:
     sub_map = {
         "maths": "Mathematics", "mathematics": "Mathematics",
         "science": "Science", "english": "English",
@@ -118,4 +164,10 @@ Language & complexity: {year_config["complexity"]}
 
 If the student asks outside this scope, say: "{year_config["redirect"]}" """
 
-    return "\n\n---\n\n".join([CORE_PERSONA, subject_prompt, year_prompt])
+    parts = [CORE_PERSONA, subject_prompt, year_prompt]
+
+    # Append NAPLAN overlay only for Maths/English — Science is not tested in NAPLAN
+    if is_naplan_mode and clean_sub in NAPLAN_OVERLAY:
+        parts.append(NAPLAN_OVERLAY[clean_sub])
+
+    return "\n\n---\n\n".join(parts)
