@@ -55,34 +55,34 @@ const FRUSTRATION = [
   /\bwhat([ '']s| is) the point\b/i,
 ];
 
-const CHEATING_RESPONSE = `I'm here to help you *learn*, not to do the work for you — and that's actually better for you! 😊
+const CHEATING_RESPONSE = `I'm here to help you *learn*, not to do the work for you, and that's actually better for you! 😊
 
 Let's tackle this together. Tell me where you're getting stuck and I'll guide you through it step by step.`;
 
-const PII_RESPONSE = `Just a heads-up — please don't share personal details like your full name, school, phone number or address in this chat. 🔒
+const PII_RESPONSE = `Just a heads-up: please don't share personal details like your full name, school, phone number or address in this chat. 🔒
 
 Now, what question can I help you with?`;
 
 const CRISIS_RESPONSE = `It sounds like things might be tough right now, and I want you to know that matters.
 
 Please talk to someone who can really help:
-- **Kids Helpline** — 1800 55 1800 (free, 24/7, for people under 25)
-- **Lifeline** — 13 11 14 (free, 24/7)
-- **Beyond Blue** — 1300 22 4636
+- **Kids Helpline**: 1800 55 1800 (free, 24/7, for people under 25)
+- **Lifeline**: 13 11 14 (free, 24/7)
+- **Beyond Blue**: 1300 22 4636
 
 You can also talk to a parent, teacher, school counsellor, or another trusted adult.
 
-I'm just a tutor, so I'm not the right support for this — but those people are. 💙`;
+I'm just a tutor, so I'm not the right support for this. Those people are. 💙`;
 
 const SERIOUS_RESPONSE = `I can see you're going through something very difficult right now. Please reach out for help immediately:
 
-🆘 **If you are in immediate danger — call 000**
+🆘 **If you are in immediate danger, call 000**
 
-- **Kids Helpline** — 1800 55 1800 (free, 24/7)
-- **Lifeline** — 13 11 14 (free, 24/7)
-- **Beyond Blue** — 1300 22 4636
+- **Kids Helpline**: 1800 55 1800 (free, 24/7)
+- **Lifeline**: 13 11 14 (free, 24/7)
+- **Beyond Blue**: 1300 22 4636
 
-Please talk to a trusted adult — a parent, teacher, or school counsellor — as soon as you can. You deserve real support. 💙`;
+Please talk to a trusted adult (a parent, teacher, or school counsellor) as soon as you can. You deserve real support. 💙`;
 
 export function checkInputSafety(text: string): SafetyResult {
   if (SERIOUS_SAFETY.some(p => p.test(text))) return { level: "serious", block: true, response: SERIOUS_RESPONSE };

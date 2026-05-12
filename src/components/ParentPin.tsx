@@ -104,7 +104,7 @@ export default function ParentPin({ onSuccess, onBack }: Props) {
             })}
           </div>
 
-          <p className="text-xs text-center text-gray-500 mt-4">Default PIN: 1234 — change in Settings</p>
+          <p className="text-xs text-center text-gray-500 mt-4">Default PIN: 1234. Change in Settings.</p>
         </div>
 
         <button

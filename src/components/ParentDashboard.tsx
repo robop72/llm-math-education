@@ -163,7 +163,7 @@ export default function ParentDashboard({ onBack }: Props) {
               <StatCard icon="❓" label="Questions asked" value={totalMessages} sub="all time" />
               <StatCard icon="📚" label="Topics covered" value={`${topicsCount}/6`} sub="curriculum strands" />
               <StatCard icon={topStrand?.emoji ?? '🌟'} label="Top strand"
-                value={topStrand?.id ?? '—'} sub={topStrand ? `${topStrand.count} questions` : 'No data yet'} />
+                value={topStrand?.id ?? 'None'} sub={topStrand ? `${topStrand.count} questions` : 'No data yet'} />
             </div>
           </div>
         </section>
@@ -180,7 +180,7 @@ export default function ParentDashboard({ onBack }: Props) {
           <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-4">Curriculum Strand Coverage</h2>
           {totalMessages === 0 ? (
             <p className="text-sm text-gray-400 text-center py-4">
-              No activity yet — strand coverage will appear once {studentName} starts asking questions.
+              No activity yet. Strand coverage will appear once {studentName} starts asking questions.
             </p>
           ) : (
             <div className="space-y-4">
@@ -224,7 +224,7 @@ export default function ParentDashboard({ onBack }: Props) {
           <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">More Features Coming Soon</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <ComingSoonCard icon="🌳" title="Curriculum Mastery Tree"
-              description="Visual map of every topic — see what's been mastered and what still needs work." />
+              description="Visual map of every topic. See what's been mastered and what still needs work." />
             <ComingSoonCard icon="🔍" title="Struggle & Success Insights"
               description="AI-powered analysis of where your student gets stuck and where they shine." />
             <ComingSoonCard icon="📧" title="Weekly Progress Email"
