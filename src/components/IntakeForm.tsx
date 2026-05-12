@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import {
   StudentProfile, IntakeQuestionnaire, SubjectPerformance,
   EngagementTone, GuidancePreference, deriveProfileClientSide,
@@ -341,7 +341,6 @@ export default function IntakeForm({ onComplete, onBack, initialProfile }: Props
     return { ...DEFAULT_DRAFT };
   });
   const [submitting, setSubmitting] = useState(false);
-  const fileRef = useRef<HTMLInputElement>(null);
 
   function patch(p: Partial<IntakeQuestionnaire>) {
     setDraft(prev => ({ ...prev, ...p }));
@@ -350,23 +349,6 @@ export default function IntakeForm({ onComplete, onBack, initialProfile }: Props
   function canAdvance() {
     if (step === 2 && draft.selected_subjects.length === 0) return false;
     return true;
-  }
-
-  function handleJsonUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = ev => {
-      try {
-        const parsed = JSON.parse(ev.target?.result as string) as Partial<IntakeQuestionnaire>;
-        setDraft(prev => ({ ...prev, ...parsed }));
-        setStep(4); // Jump to review
-      } catch {
-        alert('Invalid JSON file. Please check the format and try again.');
-      }
-    };
-    reader.readAsText(file);
-    e.target.value = '';
   }
 
   async function handleSubmit() {
@@ -399,21 +381,7 @@ export default function IntakeForm({ onComplete, onBack, initialProfile }: Props
           <div className="flex items-center gap-3">
             <img src="/voxii-logo.png" alt="Voxii AI" className="h-8 object-contain" />
           </div>
-          <div className="flex items-center gap-2">
-            {/* JSON upload for testing */}
-            <input ref={fileRef} type="file" accept=".json" className="hidden" onChange={handleJsonUpload} />
-            <button
-              type="button"
-              onClick={() => fileRef.current?.click()}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-gray-500 dark:text-gray-400 border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-              title="Upload a JSON file to pre-fill this form (for testing)"
-            >
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-              </svg>
-              Load JSON
-            </button>
-          </div>
+          <div />
         </div>
 
         {/* Progress bar */}

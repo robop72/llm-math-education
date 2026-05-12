@@ -29,6 +29,14 @@ export default function App() {
     }
   }, [view]);
 
+  useEffect(() => {
+    if (profile) {
+      setYearLevel(profile.year_level as YearLevel);
+      const first = profile.selected_subjects[0] as Subject | undefined;
+      if (first) setSubject(first);
+    }
+  }, [profile]);
+
   const {
     sessions, currentId, messages, isLoading,
     sendMessage, startNewChat, loadSession, deleteSession,
@@ -99,26 +107,32 @@ export default function App() {
 
           {/* Scrollable controls */}
           <div className="flex items-center gap-2 overflow-x-auto scrollbar-none flex-1 min-w-0">
-            <select
-              value={yearLevel}
-              onChange={e => {
-              const y = Number(e.target.value) as YearLevel;
-              setYearLevel(y);
-              if (y !== 7 && y !== 9) setIsNaplanMode(false);
-            }}
-              className="flex-shrink-0 px-3 py-1.5 rounded-full text-sm font-medium bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 outline-none cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors border border-gray-300 dark:border-gray-700"
-            >
-              {ALLOWED_YEAR_LEVELS.map(y => (
-                <option key={y} value={y}>Year {y}</option>
-              ))}
-            </select>
+            {profile ? (
+              <span className="flex-shrink-0 px-3 py-1.5 rounded-full text-sm font-medium bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-700">
+                Year {profile.year_level}
+              </span>
+            ) : (
+              <select
+                value={yearLevel}
+                onChange={e => {
+                  const y = Number(e.target.value) as YearLevel;
+                  setYearLevel(y);
+                  if (y !== 7 && y !== 9) setIsNaplanMode(false);
+                }}
+                className="flex-shrink-0 px-3 py-1.5 rounded-full text-sm font-medium bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 outline-none cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors border border-gray-300 dark:border-gray-700"
+              >
+                {ALLOWED_YEAR_LEVELS.map(y => (
+                  <option key={y} value={y}>Year {y}</option>
+                ))}
+              </select>
+            )}
 
             <div className="w-px h-5 bg-gray-800 flex-shrink-0" />
 
-            {ALLOWED_SUBJECTS.map(s => (
+            {(profile ? profile.selected_subjects as Subject[] : ALLOWED_SUBJECTS).map(s => (
               <button
                 key={s}
-                onClick={() => { setSubject(s); if (s === 'Science') setIsNaplanMode(false); }}
+                onClick={() => { setSubject(s as Subject); if (s === 'Science') setIsNaplanMode(false); }}
                 className={`flex-shrink-0 px-3 sm:px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
                   subject === s
                     ? 'bg-blue-500 text-white shadow-sm'
