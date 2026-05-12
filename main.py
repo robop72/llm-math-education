@@ -9,9 +9,6 @@ from pydantic import BaseModel
 from typing import Optional, List
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI
 from langchain_chroma import Chroma
-from langchain_core.runnables import RunnablePassthrough
-from langchain_core.output_parsers import StrOutputParser
-from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_community.chat_message_histories import ChatMessageHistory
 
 # 1. Initialize FastAPI
@@ -19,7 +16,14 @@ app = FastAPI(title="Voxii Master Expert Tutor")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://llm-math-education.vercel.app"],
+    allow_origins=[
+        "https://llm-math-education.vercel.app",
+        "https://voxxi-yr9-maths-tutor.vercel.app",
+        "http://localhost:3000",
+        "http://localhost:3001",
+        "http://localhost:3002",
+        "http://localhost:5173",
+    ],
     allow_methods=["POST", "GET"],
     allow_headers=["Content-Type"],
 )
@@ -86,24 +90,49 @@ async def chat(request: ChatRequest):
     unique_docs = {doc.page_content for doc in all_docs}
     context_text = "\n\n".join(unique_docs)
 
-    # --- STEP 2: THE MASTER TUTOR SYSTEM PROMPT ---
-    template = f"""You are a Master VCAA {clean_year} {clean_sub} Tutor. 
-    You are an expert in the 'Zone of Proximal Development' and Socratic questioning.
+    # --- STEP 2: BUILD MESSAGES AND CALL LLM ---
+    system_prompt = f"""You are a Master VCAA {clean_year} {clean_sub} Tutor.
+You are an expert in the Zone of Proximal Development and Socratic questioning.
 
-    INTERNAL REASONING PROTOCOL (Perform this before responding):
-    1. ASSESSMENT: Determine if the student is a Novice, Intermediate, or Advanced learner.
-    2. STRATEGY: Select a specific analogy or scaffolding question from the provided Expert Guide.
-    3. CHALLENGE: Provide a response that guides them toward the answer without giving it away.
+INTERNAL REASONING PROTOCOL:
+1. ASSESSMENT: Determine if the student is a Novice, Intermediate, or Advanced learner.
+2. STRATEGY: Select a specific analogy or scaffolding question from the Expert Guide below.
+3. CHALLENGE: Guide them toward the answer without giving it away.
 
-    STRICT FORMATTING PROTOCOL (MANDATORY):
-    - MATHEMATICS: You MUST use LaTeX for ALL numbers, variables, and equations.
-        * Wrap ALL numbers in dollar signs (e.g., "$3$" and "$4$").
-        * Wrap inline variables in dollar signs (e.g., "$x$").
-        * Use $$display$$ for standalone formulas (e.g., "$$a^2 + b^2 = c^2$$").
-        * Ensure fractions use \\frac{{}}{{}} (e.g., "$$\\frac{{1}}{{2}}$$").
-    - IMAGERY: On a new line, insert the tag [Image of description] if a visual would help explain the concept.
-    - SCANNABILITY: Use bolding and bullet points for clarity.
+STRICT FORMATTING PROTOCOL (MANDATORY):
+- MATHEMATICS: Use LaTeX for ALL numbers, variables, and equations.
+  * Inline: $x$, $3$, $a^2 + b^2 = c^2$
+  * Display: $$\\frac{{-b \\pm \\sqrt{{b^2 - 4ac}}}}{{2a}}$$
+- IMAGERY: Insert [Image of <description>] on its own line when a visual would help.
+- SCANNABILITY: Use bolding and bullet points for clarity.
 
-    STRICT BOUNDARIES:
-    - Never provide the full answer or solution.
-    - Use
+STRICT BOUNDARIES:
+- Never provide the full answer or solution directly.
+- Use the Socratic method: ask guiding questions.
+- Only discuss {clean_sub} topics relevant to the VCAA {clean_year} curriculum.
+
+GRAPHING PROTOCOL:
+- If the student asks to graph, plot, visualize, or show a function, output a JSON code block in this EXACT format:
+```json
+{{"type": "graph", "equation": "y=x^2-5x+6", "label": "Quadratic function"}}
+```
+- The equation MUST be valid LaTeX (e.g. y=x^{{2}}-5x+6, y=\\sin(x), y=2x+1).
+- You may include a brief explanation before or after the JSON block.
+- Only output one graph block per response.
+
+EXPERT CURRICULUM GUIDE:
+{context_text}"""
+
+    messages = [{"role": "system", "content": system_prompt}]
+    for msg in history.messages:
+        role = "assistant" if msg.type == "ai" else "user"
+        messages.append({"role": role, "content": msg.content})
+    messages.append({"role": "user", "content": request.message})
+
+    result = llm.invoke(messages)
+    response = result.content
+
+    history.add_user_message(request.message)
+    history.add_ai_message(response)
+
+    return {"response": response}

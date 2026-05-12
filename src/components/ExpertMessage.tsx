@@ -3,33 +3,34 @@ import ReactMarkdown from 'react-markdown';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
+import GraphWidget from './GraphWidget';
 
 interface Props {
   text: string;
 }
 
-// Backend outputs: [Image of <description>]
 const IMAGE_REGEX = /\[Image of ([^\]]+)\]/gi;
 
-export default function ExpertMessage({ text }: Props) {
+function renderText(text: string) {
   const parts: { type: 'text' | 'image'; content: string }[] = [];
   let lastIndex = 0;
   let match;
-
   IMAGE_REGEX.lastIndex = 0;
+
   while ((match = IMAGE_REGEX.exec(text)) !== null) {
-    if (match.index > lastIndex) {
-      parts.push({ type: 'text', content: text.slice(lastIndex, match.index) });
-    }
+    if (match.index > lastIndex) parts.push({ type: 'text', content: text.slice(lastIndex, match.index) });
     parts.push({ type: 'image', content: match[1] });
     lastIndex = match.index + match[0].length;
   }
-  if (lastIndex < text.length) {
-    parts.push({ type: 'text', content: text.slice(lastIndex) });
-  }
+  if (lastIndex < text.length) parts.push({ type: 'text', content: text.slice(lastIndex) });
+  return parts;
+}
+
+export default function ExpertMessage({ text }: Props) {
+  const parts = renderText(text);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {parts.map((part, i) =>
         part.type === 'image' ? (
           <div key={i} className="my-4 text-center">
@@ -42,7 +43,24 @@ export default function ExpertMessage({ text }: Props) {
           </div>
         ) : (
           <div key={i} className="prose prose-invert prose-sm max-w-none">
-            <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>
+            <ReactMarkdown
+              remarkPlugins={[remarkMath]}
+              rehypePlugins={[rehypeKatex]}
+              components={{
+                code({ className, children }) {
+                  const language = /language-(\w+)/.exec(className || '')?.[1];
+                  if (language === 'json') {
+                    try {
+                      const parsed = JSON.parse(String(children).trim());
+                      if (parsed.type === 'graph' && parsed.equation) {
+                        return <GraphWidget equation={parsed.equation} label={parsed.label} />;
+                      }
+                    } catch { /* fall through */ }
+                  }
+                  return <code className={className}>{children}</code>;
+                },
+              }}
+            >
               {part.content}
             </ReactMarkdown>
           </div>
