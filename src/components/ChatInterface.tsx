@@ -6,7 +6,8 @@ import { Message, useChat } from '../hooks/useChat';
 interface Props {
   yearLevel: string;
   subject: string;
-  sessionId: string;
+  isNaplanMode?: boolean;
+  sessionId?: string;
 }
 
 const TOPIC_CARDS: Record<string, { emoji: string; title: string; desc: string }[]> = {
@@ -68,8 +69,8 @@ function WelcomeScreen({ yearLevel, subject, onPrompt }: { yearLevel: string; su
   );
 }
 
-export default function ChatInterface({ yearLevel, subject }: Omit<Props, 'sessionId'> & { sessionId?: string }) {
-  const { messages, isLoading, sendMessage, cancelMessage } = useChat({ yearLevel, subject });
+export default function ChatInterface({ yearLevel, subject, isNaplanMode = false }: Props) {
+  const { messages, isLoading, sendMessage, cancelMessage } = useChat({ yearLevel, subject, isNaplanMode });
   const [input, setInput] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);

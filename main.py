@@ -53,6 +53,7 @@ class ChatRequest(BaseModel):
     message: str
     year_level: str
     subject: str
+    is_naplan_mode: bool = False
 
 # 5. Root Health Check
 @app.get("/")
@@ -92,7 +93,7 @@ async def chat(request: ChatRequest):
     context_text = "\n\n".join(unique_docs)
 
     # --- STEP 2: BUILD DYNAMIC SYSTEM PROMPT AND CALL LLM ---
-    system_prompt = build_system_prompt(request.subject, request.year_level)
+    system_prompt = build_system_prompt(request.subject, request.year_level, request.is_naplan_mode)
     system_prompt += f"\n\nEXPERT CURRICULUM GUIDE (VCAA-specific content for this session):\n{context_text}"
 
     messages = [{"role": "system", "content": system_prompt}]

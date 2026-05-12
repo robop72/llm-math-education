@@ -12,8 +12,9 @@ export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [yearLevel, setYearLevel] = useState('Year 9');
   const [subject, setSubject] = useState('Maths');
+  const [isNaplanMode, setIsNaplanMode] = useState(false);
 
-  const { sessions, currentId, messages, isLoading, sendMessage, startNewChat, loadSession, deleteSession, togglePin, cancelMessage } = useChat({ yearLevel, subject });
+  const { sessions, currentId, messages, isLoading, sendMessage, startNewChat, loadSession, deleteSession, togglePin, cancelMessage } = useChat({ yearLevel, subject, isNaplanMode });
 
   return (
     <div className="flex h-screen bg-gray-950 overflow-hidden">
@@ -44,7 +45,7 @@ export default function App() {
           {SUBJECTS.map(s => (
             <button
               key={s}
-              onClick={() => setSubject(s)}
+              onClick={() => { setSubject(s); if (s === 'Science') setIsNaplanMode(false); }}
               className={`flex-shrink-0 px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
                 subject === s
                   ? 'bg-blue-500 text-white shadow-sm'
@@ -54,12 +55,29 @@ export default function App() {
               {s}
             </button>
           ))}
+
+          {subject !== 'Science' && (
+            <>
+              <div className="w-px h-5 bg-gray-800 flex-shrink-0" />
+              <button
+                onClick={() => setIsNaplanMode(m => !m)}
+                className={`flex-shrink-0 px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
+                  isNaplanMode
+                    ? 'bg-amber-500 text-white shadow-sm'
+                    : 'bg-gray-800 text-gray-400 hover:bg-gray-700 border border-gray-700'
+                }`}
+              >
+                NAPLAN
+              </button>
+            </>
+          )}
         </div>
 
         <div className="flex-1 min-h-0">
           <ChatInterface
             yearLevel={yearLevel}
             subject={subject}
+            isNaplanMode={isNaplanMode}
           />
         </div>
       </div>

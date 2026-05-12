@@ -24,7 +24,7 @@ function makeSession(): ChatSession {
   return { id: uuidv4(), title: 'New Chat', messages: [], createdAt: Date.now() };
 }
 
-export function useChat({ yearLevel, subject }: { yearLevel: string; subject: string }) {
+export function useChat({ yearLevel, subject, isNaplanMode = false }: { yearLevel: string; subject: string; isNaplanMode?: boolean }) {
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [currentId, setCurrentId] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -35,10 +35,12 @@ export function useChat({ yearLevel, subject }: { yearLevel: string; subject: st
   const abortRef = useRef<AbortController | null>(null);
   const yearLevelRef = useRef(yearLevel);
   const subjectRef = useRef(subject);
+  const isNaplanModeRef = useRef(isNaplanMode);
   const initialised = useRef(false);
 
   useEffect(() => { yearLevelRef.current = yearLevel; }, [yearLevel]);
   useEffect(() => { subjectRef.current = subject; }, [subject]);
+  useEffect(() => { isNaplanModeRef.current = isNaplanMode; }, [isNaplanMode]);
   useEffect(() => { currentIdRef.current = currentId; }, [currentId]);
 
   useEffect(() => {
@@ -120,6 +122,7 @@ export function useChat({ yearLevel, subject }: { yearLevel: string; subject: st
           message: text.trim(),
           year_level: yearLevelRef.current,
           subject: subjectRef.current,
+          is_naplan_mode: isNaplanModeRef.current,
         }),
         signal: controller.signal,
       });
