@@ -17,6 +17,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 # --- THE CRITICAL PART ---
 # Copy your main code
 COPY main.py .
+COPY build_prompt.py .
 
 # This copies the folder and everything inside it recursively
 COPY vcaa_json_index/ ./vcaa_json_index/
