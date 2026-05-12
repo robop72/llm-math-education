@@ -72,7 +72,7 @@ function WelcomeScreen({
   const greeting = studentName ? `Hi ${studentName}!` : 'Hello!';
   return (
     <div className="flex-1 min-h-0 overflow-y-auto scrollbar-none">
-      <div className="flex flex-col items-center justify-center min-h-full px-4 sm:px-6 py-6 sm:py-8 max-w-2xl mx-auto w-full">
+      <div className="flex flex-col items-center justify-start sm:justify-center min-h-full px-4 sm:px-6 pt-8 pb-4 sm:py-8 max-w-2xl mx-auto w-full">
         <p className="text-gray-500 dark:text-gray-400 text-base sm:text-lg mb-0.5">{greeting}</p>
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-1 text-center">
           I'm your {subject} study friend
