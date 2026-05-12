@@ -3,11 +3,13 @@ import ChatInterface from './components/ChatInterface';
 import Sidebar from './components/Sidebar';
 import ParentPin from './components/ParentPin';
 import ParentDashboard from './components/ParentDashboard';
+import IntakeForm from './components/IntakeForm';
 import { useTheme } from './hooks/useTheme';
 import { useChat } from './hooks/useChat';
+import { useStudentProfile } from './hooks/useStudentProfile';
 import { YearLevel, Subject, ALLOWED_YEAR_LEVELS, ALLOWED_SUBJECTS } from './lib/curriculumConfig';
 
-type View = 'chat' | 'parent-pin' | 'parent-dashboard';
+type View = 'chat' | 'parent-pin' | 'parent-dashboard' | 'intake';
 
 export default function App() {
   const { dark, toggle } = useTheme();
@@ -19,6 +21,7 @@ export default function App() {
   const [subject, setSubject] = useState<Subject>('Maths');
   const [isNaplanMode, setIsNaplanMode] = useState(false);
   const [view, setView] = useState<View>('chat');
+  const { profile, saveProfile, clearProfile } = useStudentProfile();
 
   useEffect(() => {
     if (view === 'parent-pin' && sessionStorage.getItem('voxii-parent-auth') === 'true') {
@@ -30,7 +33,7 @@ export default function App() {
     sessions, currentId, messages, isLoading,
     sendMessage, startNewChat, loadSession, deleteSession,
     togglePin, renameSession, cancelMessage,
-  } = useChat({ yearLevel, subject, isNaplanMode });
+  } = useChat({ yearLevel, subject, isNaplanMode, studentProfile: profile });
 
   // Close sidebar on mobile after selecting a session
   function handleLoadSession(id: string) {
@@ -45,6 +48,13 @@ export default function App() {
 
   if (view === 'parent-pin') return <ParentPin onSuccess={() => setView('parent-dashboard')} onBack={() => setView('chat')} />;
   if (view === 'parent-dashboard') return <ParentDashboard onBack={() => setView('chat')} />;
+  if (view === 'intake') return (
+    <IntakeForm
+      onComplete={p => { saveProfile(p); setView('chat'); }}
+      onBack={() => setView('chat')}
+      initialProfile={profile}
+    />
+  );
 
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-gray-950 overflow-hidden">
@@ -69,6 +79,8 @@ export default function App() {
         isOpen={sidebarOpen}
         onToggle={() => setSidebarOpen(o => !o)}
         onOpenParentPortal={() => setView('parent-pin')}
+        onOpenIntake={() => setView('intake')}
+        hasProfile={profile !== null}
       />
 
       <div className="flex flex-col flex-1 min-w-0">

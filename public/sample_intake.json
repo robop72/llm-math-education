@@ -1,0 +1,33 @@
+{
+  "student_name": "Alex",
+  "year_level": 9,
+  "state_curriculum": "VIC",
+  "primary_goals": ["Build confidence", "Improve grades", "Exam preparation"],
+  "selected_subjects": ["Maths", "English", "Science"],
+  "subject_performance": {
+    "Maths": {
+      "grade": "C",
+      "struggles_significantly": false,
+      "low_confidence": false,
+      "receives_extension": false,
+      "highly_motivated": false
+    },
+    "English": {
+      "grade": "D/E",
+      "struggles_significantly": true,
+      "low_confidence": true,
+      "receives_extension": false,
+      "highly_motivated": false
+    },
+    "Science": {
+      "grade": "A/A+",
+      "struggles_significantly": false,
+      "low_confidence": false,
+      "receives_extension": true,
+      "highly_motivated": true
+    }
+  },
+  "guidance_preference": "Mixed",
+  "engagement_tone": "Warm",
+  "focus_limit_minutes": 20
+}

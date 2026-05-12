@@ -238,12 +238,13 @@ NAPLAN READING & LANGUAGE CONVENTIONS:
 
 # ─── Builder Function ─────────────────────────────────────────────────────────
 
+SUB_MAP = {
+    "maths": "Mathematics", "mathematics": "Mathematics",
+    "science": "Science", "english": "English",
+}
+
 def build_system_prompt(subject: str, year_level: str, is_naplan_mode: bool = False) -> str:
-    sub_map = {
-        "maths": "Mathematics", "mathematics": "Mathematics",
-        "science": "Science", "english": "English",
-    }
-    clean_sub = sub_map.get(subject.strip().lower(), "Mathematics")
+    clean_sub = SUB_MAP.get(subject.strip().lower(), "Mathematics")
 
     try:
         year_int = int(''.join(filter(str.isdigit, year_level)))
