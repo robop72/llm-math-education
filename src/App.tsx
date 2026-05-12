@@ -5,36 +5,32 @@ import ParentPin from './components/ParentPin';
 import ParentDashboard from './components/ParentDashboard';
 import { useTheme } from './hooks/useTheme';
 import { useChat } from './hooks/useChat';
-
-const YEAR_LEVELS = ['Year 7', 'Year 8', 'Year 9', 'Year 10', 'Year 11', 'Year 12'];
-const SUBJECTS = ['English', 'Maths', 'Science'];
+import { YearLevel, Subject, ALLOWED_YEAR_LEVELS, ALLOWED_SUBJECTS } from './lib/curriculumConfig';
 
 type View = 'chat' | 'parent-pin' | 'parent-dashboard';
 
 export default function App() {
   const { dark, toggle } = useTheme();
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [yearLevel, setYearLevel] = useState('Year 9');
-  const [subject, setSubject] = useState('Maths');
+  const [yearLevel, setYearLevel] = useState<YearLevel>(9);
+  const [subject, setSubject] = useState<Subject>('Maths');
   const [isNaplanMode, setIsNaplanMode] = useState(false);
   const [view, setView] = useState<View>('chat');
 
-  // Auto-redirect if already authenticated
   useEffect(() => {
     if (view === 'parent-pin' && sessionStorage.getItem('voxii-parent-auth') === 'true') {
       setView('parent-dashboard');
     }
   }, [view]);
 
-  const { sessions, currentId, messages, isLoading, sendMessage, startNewChat, loadSession, deleteSession, togglePin, cancelMessage } =
-    useChat({ yearLevel, subject, isNaplanMode });
+  const {
+    sessions, currentId, messages, isLoading,
+    sendMessage, startNewChat, loadSession, deleteSession,
+    togglePin, renameSession, cancelMessage,
+  } = useChat({ yearLevel, subject, isNaplanMode });
 
-  if (view === 'parent-pin') {
-    return <ParentPin onSuccess={() => setView('parent-dashboard')} onBack={() => setView('chat')} />;
-  }
-  if (view === 'parent-dashboard') {
-    return <ParentDashboard onBack={() => setView('chat')} />;
-  }
+  if (view === 'parent-pin') return <ParentPin onSuccess={() => setView('parent-dashboard')} onBack={() => setView('chat')} />;
+  if (view === 'parent-dashboard') return <ParentDashboard onBack={() => setView('chat')} />;
 
   return (
     <div className="flex h-screen bg-gray-950 overflow-hidden">
@@ -45,6 +41,7 @@ export default function App() {
         onLoadSession={loadSession}
         onDeleteSession={deleteSession}
         onTogglePin={togglePin}
+        onRenameSession={renameSession}
         dark={dark}
         onToggleTheme={toggle}
         isOpen={sidebarOpen}
@@ -57,13 +54,17 @@ export default function App() {
         <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-800 bg-gray-950 overflow-x-auto scrollbar-none flex-shrink-0">
           <select
             value={yearLevel}
-            onChange={e => setYearLevel(e.target.value)}
+            onChange={e => setYearLevel(Number(e.target.value) as YearLevel)}
             className="flex-shrink-0 px-3 py-1.5 rounded-full text-sm font-medium bg-gray-800 text-gray-300 outline-none cursor-pointer hover:bg-gray-700 transition-colors border border-gray-700"
           >
-            {YEAR_LEVELS.map(y => <option key={y} value={y}>{y}</option>)}
+            {ALLOWED_YEAR_LEVELS.map(y => (
+              <option key={y} value={y}>Year {y}</option>
+            ))}
           </select>
+
           <div className="w-px h-5 bg-gray-800 flex-shrink-0" />
-          {SUBJECTS.map(s => (
+
+          {ALLOWED_SUBJECTS.map(s => (
             <button
               key={s}
               onClick={() => { setSubject(s); if (s === 'Science') setIsNaplanMode(false); }}
@@ -93,7 +94,6 @@ export default function App() {
             </>
           )}
 
-          {/* Logo — top right */}
           <div className="ml-auto flex-shrink-0">
             <img src="/voxii-logo.png" alt="Voxii AI" className="h-8 object-contain" />
           </div>
@@ -104,6 +104,10 @@ export default function App() {
             yearLevel={yearLevel}
             subject={subject}
             isNaplanMode={isNaplanMode}
+            messages={messages}
+            isLoading={isLoading}
+            sendMessage={sendMessage}
+            cancelMessage={cancelMessage}
           />
         </div>
       </div>

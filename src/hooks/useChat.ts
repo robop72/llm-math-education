@@ -24,7 +24,7 @@ function makeSession(): ChatSession {
   return { id: uuidv4(), title: 'New Chat', messages: [], createdAt: Date.now() };
 }
 
-export function useChat({ yearLevel, subject, isNaplanMode = false }: { yearLevel: string; subject: string; isNaplanMode?: boolean }) {
+export function useChat({ yearLevel, subject, isNaplanMode = false }: { yearLevel: number; subject: string; isNaplanMode?: boolean }) {
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [currentId, setCurrentId] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -93,6 +93,12 @@ export function useChat({ yearLevel, subject, isNaplanMode = false }: { yearLeve
     setSessions(prev => prev.map(s => s.id === id ? { ...s, pinned: !s.pinned } : s));
   }, []);
 
+  const renameSession = useCallback((id: string, title: string) => {
+    const trimmed = title.trim();
+    if (!trimmed) return;
+    setSessions(prev => prev.map(s => s.id === id ? { ...s, title: trimmed } : s));
+  }, []);
+
   const cancelMessage = useCallback(() => {
     if (!isLoadingRef.current) return;
     abortRef.current?.abort();
@@ -120,7 +126,7 @@ export function useChat({ yearLevel, subject, isNaplanMode = false }: { yearLeve
         body: JSON.stringify({
           session_id: apiSessionRef.current,
           message: text.trim(),
-          year_level: yearLevelRef.current,
+          year_level: `Year ${yearLevelRef.current}`,
           subject: subjectRef.current,
           is_naplan_mode: isNaplanModeRef.current,
         }),
@@ -151,5 +157,5 @@ export function useChat({ yearLevel, subject, isNaplanMode = false }: { yearLeve
   }, []);
 
   const messages = sessions.find(s => s.id === currentId)?.messages ?? [];
-  return { sessions, currentId, messages, isLoading, sendMessage, startNewChat, loadSession, deleteSession, togglePin, cancelMessage };
+  return { sessions, currentId, messages, isLoading, sendMessage, startNewChat, loadSession, deleteSession, togglePin, renameSession, cancelMessage };
 }
