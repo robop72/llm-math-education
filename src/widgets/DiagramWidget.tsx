@@ -1275,53 +1275,264 @@ const IndexLaws = () => (
   </svg>
 );
 
+const QuadrilateralTypes = () => (
+  <svg viewBox="0 0 580 220" width="100%" style={{ maxHeight: 220 }}>
+    {[
+      { x: 10,  label: 'Square',        sub: 'All sides equal\nAll angles 90°',    color: '#3b82f6',
+        pts: '35,50 125,50 125,140 35,140' },
+      { x: 145, label: 'Rectangle',     sub: 'Opposite sides equal\nAll angles 90°', color: '#10b981',
+        pts: '150,65 270,65 270,130 150,130' },
+      { x: 290, label: 'Parallelogram', sub: 'Opposite sides equal\nOpposite angles equal', color: '#f59e0b',
+        pts: '310,130 420,130 400,55 290,55' },
+      { x: 430, label: 'Trapezium',     sub: 'One pair of\nparallel sides',        color: '#8b5cf6',
+        pts: '450,130 560,130 540,60 470,60' },
+    ].map(({ x, label, sub, color, pts }) => (
+      <g key={label}>
+        <rect x={x} y={8} width={130} height={202} rx={6} fill={color} opacity={0.07} stroke={color} strokeWidth={1} />
+        <polygon points={pts} fill={color} opacity={0.25} stroke={color} strokeWidth={2} />
+        <T x={x + 65} y={158} size={9}  weight="bold" fill={color}>{label}</T>
+        {sub.split('\n').map((line, i) => <T key={i} x={x + 65} y={172 + i * 14} size={8} fill="#9ca3af">{line}</T>)}
+      </g>
+    ))}
+  </svg>
+);
+
+const Shapes3D = () => (
+  <svg viewBox="0 0 580 240" width="100%" style={{ maxHeight: 240 }}>
+    {[
+      { x: 10,  label: 'Cube',          vol: 'V = l³',             sa: 'SA = 6l²',           color: '#3b82f6',
+        shape: <><rect x={30} y={50}  width={80} height={80} fill="#3b82f6" opacity={0.2} stroke="#3b82f6" strokeWidth={1.5} /><polygon points="30,50 55,25 135,25 110,50" fill="#3b82f6" opacity={0.3} stroke="#3b82f6" strokeWidth={1.5} /><line x1={110} y1={50} x2={110} y2={130} stroke="#3b82f6" strokeWidth={1.5} /><line x1={110} y1={25} x2={110} y2={50} stroke="#3b82f6" strokeWidth={1.5} /></> },
+      { x: 150, label: 'Rectangular Prism', vol: 'V = lwh',        sa: 'SA = 2(lw+lh+wh)',  color: '#10b981',
+        shape: <><rect x={160} y={60} width={100} height={65} fill="#10b981" opacity={0.2} stroke="#10b981" strokeWidth={1.5} /><polygon points="160,60 185,35 285,35 260,60" fill="#10b981" opacity={0.3} stroke="#10b981" strokeWidth={1.5} /><line x1={260} y1={60} x2={260} y2={125} stroke="#10b981" strokeWidth={1.5} /></> },
+      { x: 310, label: 'Cylinder',       vol: 'V = πr²h',          sa: 'SA = 2πr²+2πrh',    color: '#8b5cf6',
+        shape: <><ellipse cx={370} cy={65}  rx={42} ry={14} fill="#8b5cf6" opacity={0.35} stroke="#8b5cf6" strokeWidth={1.5} /><rect x={328} y={65} width={84} height={70} fill="#8b5cf6" opacity={0.18} stroke="#8b5cf6" strokeWidth={0} /><ellipse cx={370} cy={135} rx={42} ry={14} fill="#8b5cf6" opacity={0.2}  stroke="#8b5cf6" strokeWidth={1.5} /><line x1={328} y1={65} x2={328} y2={135} stroke="#8b5cf6" strokeWidth={1.5} /><line x1={412} y1={65} x2={412} y2={135} stroke="#8b5cf6" strokeWidth={1.5} /></> },
+      { x: 460, label: 'Cone',          vol: 'V = ⅓πr²h',         sa: 'SA = πr²+πrl',       color: '#ef4444',
+        shape: <><ellipse cx={520} cy={130} rx={42} ry={14} fill="#ef4444" opacity={0.2} stroke="#ef4444" strokeWidth={1.5} /><line x1={478} y1={130} x2={520} y2={40}  stroke="#ef4444" strokeWidth={1.5} /><line x1={562} y1={130} x2={520} y2={40}  stroke="#ef4444" strokeWidth={1.5} /><polygon points="478,130 520,40 562,130" fill="#ef4444" opacity={0.15} /></> },
+    ].map(({ x, label, vol, sa, color, shape }) => (
+      <g key={label}>
+        <rect x={x} y={10} width={135} height={220} rx={6} fill={color} opacity={0.06} stroke={color} strokeWidth={1} />
+        {shape}
+        <T x={x + 67} y={155} size={9}  weight="bold" fill={color}>{label}</T>
+        <T x={x + 67} y={170} size={8}  fill="#d1d5db">{vol}</T>
+        <T x={x + 67} y={184} size={7.5} fill="#9ca3af">{sa}</T>
+      </g>
+    ))}
+  </svg>
+);
+
+const Transformations = () => (
+  <svg viewBox="0 0 580 230" width="100%" style={{ maxHeight: 230 }}>
+    {/* Translation */}
+    <rect x={10} y={10} width={130} height={210} rx={6} fill="#3b82f6" opacity={0.07} stroke="#3b82f6" strokeWidth={1} />
+    <polygon points="30,120 60,70 90,120" fill="#3b82f6" opacity={0.3} stroke="#3b82f6" strokeWidth={1.5} />
+    <polygon points="65,160 95,110 125,160" fill="#3b82f6" opacity={0.15} stroke="#3b82f6" strokeWidth={1.5} strokeDasharray="4 2" />
+    <line x1={60} y1={95} x2={90} y2={133} stroke="#3b82f6" strokeWidth={1.5} markerEnd="url(#arr)" />
+    <T x={75} y={188} size={9} weight="bold" fill="#60a5fa">Translation</T>
+    <T x={75} y={202} size={8} fill="#9ca3af">Slide — same size</T>
+    <T x={75} y={215} size={8} fill="#9ca3af">and shape</T>
+    {/* Reflection */}
+    <rect x={150} y={10} width={130} height={210} rx={6} fill="#10b981" opacity={0.07} stroke="#10b981" strokeWidth={1} />
+    <line x1={215} y1={20} x2={215} y2={190} stroke="#10b981" strokeWidth={1.5} strokeDasharray="5 3" />
+    <polygon points="165,130 195,70 195,130" fill="#10b981" opacity={0.3} stroke="#10b981" strokeWidth={1.5} />
+    <polygon points="265,130 235,70 235,130" fill="#10b981" opacity={0.15} stroke="#10b981" strokeWidth={1.5} strokeDasharray="4 2" />
+    <T x={215} y={188} size={9} weight="bold" fill="#34d399">Reflection</T>
+    <T x={215} y={202} size={8} fill="#9ca3af">Flip over a mirror</T>
+    <T x={215} y={215} size={8} fill="#9ca3af">line (axis)</T>
+    {/* Rotation */}
+    <rect x={290} y={10} width={130} height={210} rx={6} fill="#f59e0b" opacity={0.07} stroke="#f59e0b" strokeWidth={1} />
+    <circle cx={355} cy={120} r={3} fill="#f59e0b" />
+    <polygon points="355,120 355,65 400,65 400,120" fill="#f59e0b" opacity={0.3} stroke="#f59e0b" strokeWidth={1.5} />
+    <polygon points="355,120 310,120 310,165 355,165" fill="#f59e0b" opacity={0.15} stroke="#f59e0b" strokeWidth={1.5} strokeDasharray="4 2" />
+    <path d="M 370,80 A 25,25 0 0 1 340,140" fill="none" stroke="#f59e0b" strokeWidth={1.5} markerEnd="url(#arr)" />
+    <T x={355} y={188} size={9} weight="bold" fill="#fcd34d">Rotation</T>
+    <T x={355} y={202} size={8} fill="#9ca3af">Turn around a</T>
+    <T x={355} y={215} size={8} fill="#9ca3af">centre point</T>
+    {/* Dilation */}
+    <rect x={430} y={10} width={140} height={210} rx={6} fill="#8b5cf6" opacity={0.07} stroke="#8b5cf6" strokeWidth={1} />
+    <circle cx={500} cy={120} r={3} fill="#8b5cf6" />
+    <polygon points="500,120 480,80 520,80" fill="#8b5cf6" opacity={0.15} stroke="#8b5cf6" strokeWidth={1.5} strokeDasharray="4 2" />
+    <polygon points="500,120 460,50 540,50" fill="#8b5cf6" opacity={0.3} stroke="#8b5cf6" strokeWidth={1.5} />
+    <line x1={500} y1={120} x2={500} y2={53} stroke="#8b5cf6" strokeWidth={1} strokeDasharray="3 2" />
+    <T x={500} y={188} size={9} weight="bold" fill="#c4b5fd">Dilation</T>
+    <T x={500} y={202} size={8} fill="#9ca3af">Scale factor enlarges</T>
+    <T x={500} y={215} size={8} fill="#9ca3af">or shrinks the shape</T>
+  </svg>
+);
+
+const ScatterPlotCorrelation = () => (
+  <svg viewBox="0 0 580 240" width="100%" style={{ maxHeight: 240 }}>
+    {arrowDef}
+    {[
+      { x: 10,  label: 'Positive Correlation',   sub: 'As x increases, y increases',   color: '#10b981',
+        dots: [[30,160],[55,140],[80,120],[105,100],[130,85],[155,65]] },
+      { x: 210, label: 'Negative Correlation',   sub: 'As x increases, y decreases',   color: '#ef4444',
+        dots: [[220,65],[245,80],[270,105],[295,125],[320,145],[345,165]] },
+      { x: 410, label: 'No Correlation',         sub: 'No pattern between x and y',    color: '#6b7280',
+        dots: [[420,80],[445,155],[470,100],[495,140],[520,75],[545,160]] },
+    ].map(({ x, label, sub, color, dots }) => (
+      <g key={label}>
+        <rect x={x} y={10} width={190} height={220} rx={6} fill={color} opacity={0.07} stroke={color} strokeWidth={1} />
+        {/* Mini axes */}
+        <line x1={x+15} y1={185} x2={x+180} y2={185} stroke="#4b5563" strokeWidth={1.5} markerEnd="url(#arr)" />
+        <line x1={x+15} y1={185} x2={x+15}  y2={30}  stroke="#4b5563" strokeWidth={1.5} markerEnd="url(#arr)" />
+        <T x={x+190} y={185} size={8} fill="#6b7280" anchor="start">x</T>
+        <T x={x+15}  y={24}  size={8} fill="#6b7280">y</T>
+        {dots.map(([dx, dy], i) => <circle key={i} cx={dx} cy={dy} r={5} fill={color} opacity={0.8} />)}
+        {/* Trend line for positive/negative */}
+        {label !== 'No Correlation' && (
+          <line x1={dots[0][0]} y1={dots[0][1]} x2={dots[dots.length-1][0]} y2={dots[dots.length-1][1]}
+            stroke={color} strokeWidth={1.5} strokeDasharray="5 3" opacity={0.7} />
+        )}
+        <T x={x+95} y={200} size={9} weight="bold" fill={color}>{label}</T>
+        <T x={x+95} y={213} size={8} fill="#9ca3af">{sub}</T>
+      </g>
+    ))}
+  </svg>
+);
+
+const PhotosynthesisRespiration = () => (
+  <svg viewBox="0 0 560 260" width="100%" style={{ maxHeight: 260 }}>
+    {arrowDef}
+    {/* Photosynthesis box */}
+    <rect x={20} y={20} width={220} height={100} rx={8} fill="#14532d" stroke="#16a34a" strokeWidth={1.5} />
+    <T x={130} y={42} size={10} weight="bold" fill="#4ade80">Photosynthesis</T>
+    <T x={130} y={60} size={8.5} fill="#86efac">6CO₂ + 6H₂O + light energy</T>
+    <T x={130} y={76} size={10} fill="#e5e7eb">→ C₆H₁₂O₆ + 6O₂</T>
+    <T x={130} y={96} size={8} fill="#9ca3af">Chloroplasts · occurs in light</T>
+    <T x={130} y={110} size={8} fill="#9ca3af">Produces glucose &amp; oxygen</T>
+    {/* Cellular Respiration box */}
+    <rect x={320} y={20} width={220} height={100} rx={8} fill="#1c1917" stroke="#f97316" strokeWidth={1.5} />
+    <T x={430} y={42} size={10} weight="bold" fill="#fb923c">Cellular Respiration</T>
+    <T x={430} y={60} size={8.5} fill="#fdba74">C₆H₁₂O₆ + 6O₂</T>
+    <T x={430} y={76} size={10} fill="#e5e7eb">→ 6CO₂ + 6H₂O + ATP</T>
+    <T x={430} y={96} size={8} fill="#9ca3af">Mitochondria · occurs always</T>
+    <T x={430} y={110} size={8} fill="#9ca3af">Releases energy (ATP)</T>
+    {/* Plant in middle */}
+    <T x={280} y={75} size={24}>🌿</T>
+    {/* Arrows — O2 and CO2 cycling */}
+    <path d="M 240,55 Q 280,30 320,55" fill="none" stroke="#3b82f6" strokeWidth={1.5} markerEnd="url(#arr)" />
+    <T x={280} y={28} size={8} fill="#60a5fa">O₂ out</T>
+    <path d="M 320,80 Q 280,105 240,80" fill="none" stroke="#ef4444" strokeWidth={1.5} markerEnd="url(#arr)" />
+    <T x={280} y={108} size={8} fill="#fca5a5">CO₂ in</T>
+    {/* Differences table */}
+    <rect x={20} y={145} width={520} height={100} rx={6} fill="#1f2937" stroke="#374151" strokeWidth={1} />
+    {[
+      { label: '',               photo: 'Photosynthesis',     resp: 'Respiration' },
+      { label: 'Occurs in:',     photo: 'Plants (chloroplasts)', resp: 'All living cells (mitochondria)' },
+      { label: 'Requires:',      photo: 'Light, CO₂, H₂O',   resp: 'Glucose, O₂' },
+      { label: 'Produces:',      photo: 'Glucose + O₂',       resp: 'CO₂ + H₂O + energy' },
+    ].map(({ label, photo, resp }, i) => {
+      const y = 160 + i * 22;
+      const iH = i === 0;
+      return <g key={i}>
+        <T x={100} y={y} size={iH ? 9 : 8} weight={iH ? 'bold' : 'normal'} fill={iH ? '#e5e7eb' : '#9ca3af'} anchor="end">{label}</T>
+        <T x={270} y={y} size={iH ? 9 : 8} weight={iH ? 'bold' : 'normal'} fill={iH ? '#4ade80' : '#d1d5db'}>{photo}</T>
+        <T x={450} y={y} size={iH ? 9 : 8} weight={iH ? 'bold' : 'normal'} fill={iH ? '#fb923c' : '#d1d5db'}>{resp}</T>
+        {i > 0 && <line x1={25} y1={y - 11} x2={535} y2={y - 11} stroke="#374151" strokeWidth={0.5} />}
+      </g>;
+    })}
+  </svg>
+);
+
+const PeriodicTableStructure = () => (
+  <svg viewBox="0 0 580 260" width="100%" style={{ maxHeight: 260 }}>
+    {/* Background zones */}
+    <rect x={15}  y={30} width={85}  height={200} rx={4} fill="#1e3a5f" stroke="#3b82f6" strokeWidth={1} opacity={0.5} />
+    <rect x={105} y={30} width={300} height={200} rx={4} fill="#1f1207" stroke="#b45309" strokeWidth={1} opacity={0.5} />
+    <rect x={410} y={30} width={160} height={200} rx={4} fill="#1a1030" stroke="#7c3aed" strokeWidth={1} opacity={0.5} />
+    {/* Metalloids diagonal */}
+    <rect x={305} y={30} width={105} height={200} rx={4} fill="#0f1f0f" stroke="#16a34a" strokeWidth={1} opacity={0.4} />
+    {/* Labels for zones */}
+    <T x={57}  y={140} size={10} weight="bold" fill="#60a5fa">Metals</T>
+    <T x={255} y={140} size={10} weight="bold" fill="#f97316">Transition\nMetals</T>
+    <T x={355} y={120} size={9}  weight="bold" fill="#4ade80">Metalloids</T>
+    <T x={490} y={140} size={10} weight="bold" fill="#c4b5fd">Non-metals</T>
+    {/* Period arrows */}
+    <line x1={8} y1={60}  x2={8} y2={215} stroke="#6b7280" strokeWidth={1.5} markerEnd="url(#arr)" />
+    <T x={5} y={140} size={8} fill="#9ca3af" anchor="end">P\ne\nr\ni\no\nd\ns</T>
+    {/* Group arrows */}
+    <line x1={15}  y1={22} x2={565} y2={22} stroke="#6b7280" strokeWidth={1.5} markerEnd="url(#arr)" />
+    <T x={290} y={18} size={8} fill="#9ca3af">Groups (1–18) →</T>
+    {/* Key properties */}
+    <rect x={15} y={240} width={550} height={16} rx={3} fill="#111827" />
+    <T x={57}  y={248} size={8} fill="#60a5fa">Metals: conduct, malleable, shiny</T>
+    <T x={290} y={248} size={8} fill="#c4b5fd">Non-metals: insulate, brittle, dull</T>
+    <T x={490} y={248} size={8} fill="#4ade80">Metalloids: semi-conductors</T>
+    {/* Sample elements */}
+    {[
+      { x: 20,  y: 50, sym: 'H',  name: 'Hydrogen',  num: '1',  color: '#8b5cf6' },
+      { x: 20,  y: 90, sym: 'Li', name: 'Lithium',   num: '3',  color: '#3b82f6' },
+      { x: 20,  y: 130,sym: 'Na', name: 'Sodium',    num: '11', color: '#3b82f6' },
+      { x: 110, y: 130,sym: 'Fe', name: 'Iron',      num: '26', color: '#f59e0b' },
+      { x: 415, y: 50, sym: 'C',  name: 'Carbon',    num: '6',  color: '#8b5cf6' },
+      { x: 415, y: 90, sym: 'O',  name: 'Oxygen',    num: '8',  color: '#8b5cf6' },
+      { x: 510, y: 50, sym: 'He', name: 'Helium',    num: '2',  color: '#7c3aed' },
+      { x: 510, y: 90, sym: 'Ne', name: 'Neon',      num: '10', color: '#7c3aed' },
+    ].map(({ x, y, sym, name, num, color }) => (
+      <g key={sym}>
+        <rect x={x} y={y} width={75} height={34} rx={4} fill={color} opacity={0.18} stroke={color} strokeWidth={1} />
+        <T x={x + 14} y={y + 17} size={14} weight="bold" fill={color} anchor="middle">{sym}</T>
+        <T x={x + 50} y={y + 11} size={8}  fill="#d1d5db" anchor="middle">{num}</T>
+        <T x={x + 50} y={y + 24} size={7.5} fill="#9ca3af" anchor="middle">{name}</T>
+      </g>
+    ))}
+    <T x={290} y={14} size={10} weight="bold" fill="#e5e7eb"> </T>
+  </svg>
+);
+
 // ── Diagram registry ──────────────────────────────────────────────────────────
 
-export const DIAGRAM_MAP: Record<string, { title: string; icon: string; render: () => React.ReactElement }> = {
+export const DIAGRAM_MAP: Record<string, { title: string; icon: string; minWidth: number; render: () => React.ReactElement }> = {
   // English
-  'teel-paragraph':        { title: 'TEEL Paragraph Structure',    icon: '📝', render: () => <TeelParagraph /> },
-  'essay-structure':       { title: '5-Paragraph Essay Structure',  icon: '📄', render: () => <EssayStructure /> },
-  'story-arc':             { title: "Freytag's Story Arc",          icon: '📖', render: () => <StoryArc /> },
-  'persuasive-structure':  { title: 'Persuasive Writing Structure', icon: '🗣️', render: () => <PersuasiveStructure /> },
-  'argument-map':          { title: 'Argument Map',                 icon: '🗺️', render: () => <ArgumentMap /> },
-  'literary-devices':      { title: 'Literary Devices',             icon: '✍️', render: () => <LiteraryDevices /> },
-  'narrative-perspective': { title: 'Narrative Perspective',        icon: '👁️', render: () => <NarrativePerspective /> },
-  'text-types':            { title: 'Text Types Overview',          icon: '📚', render: () => <TextTypes /> },
+  'teel-paragraph':        { title: 'TEEL Paragraph Structure',    icon: '📝', minWidth: 520, render: () => <TeelParagraph /> },
+  'essay-structure':       { title: '5-Paragraph Essay Structure',  icon: '📄', minWidth: 280, render: () => <EssayStructure /> },
+  'story-arc':             { title: "Freytag's Story Arc",          icon: '📖', minWidth: 500, render: () => <StoryArc /> },
+  'persuasive-structure':  { title: 'Persuasive Writing Structure', icon: '🗣️', minWidth: 520, render: () => <PersuasiveStructure /> },
+  'argument-map':          { title: 'Argument Map',                 icon: '🗺️', minWidth: 460, render: () => <ArgumentMap /> },
+  'literary-devices':      { title: 'Literary Devices',             icon: '✍️', minWidth: 520, render: () => <LiteraryDevices /> },
+  'narrative-perspective': { title: 'Narrative Perspective',        icon: '👁️', minWidth: 500, render: () => <NarrativePerspective /> },
+  'text-types':            { title: 'Text Types Overview',          icon: '📚', minWidth: 520, render: () => <TextTypes /> },
   // Science
-  'animal-cell':               { title: 'Animal Cell',                      icon: '🔬', render: () => <AnimalCell /> },
-  'plant-cell':                { title: 'Plant Cell',                       icon: '🌿', render: () => <PlantCell /> },
-  'water-cycle':               { title: 'The Water Cycle',                  icon: '💧', render: () => <WaterCycle /> },
-  'food-chain':                { title: 'Food Chain',                       icon: '🌱', render: () => <FoodChain /> },
-  'atom-bohr':                 { title: 'Bohr Model Atom',                  icon: '⚛️', render: () => <AtomBohr /> },
-  'circuit-series':            { title: 'Series Circuit',                   icon: '⚡', render: () => <CircuitSeries /> },
-  'circuit-parallel':          { title: 'Parallel Circuit',                 icon: '⚡', render: () => <CircuitParallel /> },
-  'wave-diagram':              { title: 'Wave Diagram',                     icon: '〰️', render: () => <WaveDiagram /> },
-  'particle-states':           { title: 'States of Matter — Particle Model', icon: '🧪', render: () => <ParticleStates /> },
-  'electromagnetic-spectrum':  { title: 'Electromagnetic Spectrum',         icon: '🌈', render: () => <ElectromagneticSpectrum /> },
-  'human-body-systems':        { title: 'Human Body Systems',               icon: '🫀', render: () => <HumanBodySystems /> },
-  'dna-structure':             { title: 'DNA Double Helix',                 icon: '🧬', render: () => <DnaStructure /> },
-  'mitosis-stages':            { title: 'Stages of Mitosis',                icon: '🔬', render: () => <MitosisStages /> },
-  'trophic-pyramid':           { title: 'Trophic / Energy Pyramid',         icon: '🌿', render: () => <TrophicPyramid /> },
-  'rock-cycle':                { title: 'The Rock Cycle',                   icon: '🪨', render: () => <RockCycle /> },
-  'ph-scale':                  { title: 'pH Scale',                         icon: '🧪', render: () => <PhScale /> },
-  'force-diagram':             { title: 'Balanced & Unbalanced Forces',     icon: '⚖️', render: () => <ForceDiagram /> },
-  'speed-velocity':            { title: 'Distance–Time & Velocity–Time Graphs', icon: '📈', render: () => <SpeedVelocity /> },
+  'animal-cell':                    { title: 'Animal Cell',                           icon: '🔬', minWidth: 420, render: () => <AnimalCell /> },
+  'plant-cell':                     { title: 'Plant Cell',                            icon: '🌿', minWidth: 420, render: () => <PlantCell /> },
+  'water-cycle':                    { title: 'The Water Cycle',                       icon: '💧', minWidth: 500, render: () => <WaterCycle /> },
+  'food-chain':                     { title: 'Food Chain',                            icon: '🌱', minWidth: 520, render: () => <FoodChain /> },
+  'atom-bohr':                      { title: 'Bohr Model Atom',                       icon: '⚛️', minWidth: 320, render: () => <AtomBohr /> },
+  'circuit-series':                 { title: 'Series Circuit',                        icon: '⚡', minWidth: 440, render: () => <CircuitSeries /> },
+  'circuit-parallel':               { title: 'Parallel Circuit',                      icon: '⚡', minWidth: 440, render: () => <CircuitParallel /> },
+  'wave-diagram':                   { title: 'Wave Diagram',                          icon: '〰️', minWidth: 500, render: () => <WaveDiagram /> },
+  'particle-states':                { title: 'States of Matter — Particle Model',    icon: '🧪', minWidth: 500, render: () => <ParticleStates /> },
+  'electromagnetic-spectrum':       { title: 'Electromagnetic Spectrum',              icon: '🌈', minWidth: 540, render: () => <ElectromagneticSpectrum /> },
+  'human-body-systems':             { title: 'Human Body Systems',                    icon: '🫀', minWidth: 500, render: () => <HumanBodySystems /> },
+  'dna-structure':                  { title: 'DNA Double Helix',                      icon: '🧬', minWidth: 340, render: () => <DnaStructure /> },
+  'mitosis-stages':                 { title: 'Stages of Mitosis',                     icon: '🔬', minWidth: 520, render: () => <MitosisStages /> },
+  'trophic-pyramid':                { title: 'Trophic / Energy Pyramid',              icon: '🌿', minWidth: 380, render: () => <TrophicPyramid /> },
+  'rock-cycle':                     { title: 'The Rock Cycle',                        icon: '🪨', minWidth: 440, render: () => <RockCycle /> },
+  'ph-scale':                       { title: 'pH Scale',                              icon: '🧪', minWidth: 520, render: () => <PhScale /> },
+  'force-diagram':                  { title: 'Balanced & Unbalanced Forces',          icon: '⚖️', minWidth: 480, render: () => <ForceDiagram /> },
+  'speed-velocity':                 { title: 'Distance–Time & Velocity–Time Graphs', icon: '📈', minWidth: 500, render: () => <SpeedVelocity /> },
+  'photosynthesis-respiration':     { title: 'Photosynthesis vs Respiration',        icon: '🌿', minWidth: 500, render: () => <PhotosynthesisRespiration /> },
+  'periodic-table-structure':       { title: 'Periodic Table Structure',              icon: '⚗️', minWidth: 520, render: () => <PeriodicTableStructure /> },
   // Maths
-  'angle-types':          { title: 'Types of Angles',               icon: '📐', render: () => <AngleTypes /> },
-  'triangle-types':       { title: 'Types of Triangles',            icon: '🔺', render: () => <TriangleTypes /> },
-  'circle-parts':         { title: 'Parts of a Circle',             icon: '⭕', render: () => <CircleParts /> },
-  'cartesian-plane':      { title: 'Cartesian Plane',               icon: '📊', render: () => <CartesianPlane /> },
-  'gradient-intercept':   { title: 'Gradient & Y-Intercept',        icon: '📈', render: () => <GradientIntercept /> },
-  'soh-cah-toa':          { title: 'SOH CAH TOA — Trigonometry',    icon: '📐', render: () => <SohCahToa /> },
-  'parabola-features':    { title: 'Features of a Parabola',        icon: '∪',  render: () => <ParabolaFeatures /> },
-  'area-formulas':        { title: 'Area Formulas',                  icon: '📐', render: () => <AreaFormulas /> },
-  'order-of-operations':  { title: 'Order of Operations (BODMAS)',  icon: '🔢', render: () => <OrderOfOperations /> },
-  'fraction-models':      { title: 'Fraction Models',               icon: '½',  render: () => <FractionModels /> },
-  'venn-diagram':         { title: 'Venn Diagram',                  icon: '⭕', render: () => <VennDiagram /> },
-  'index-laws':           { title: 'Index Laws',                    icon: '🔢', render: () => <IndexLaws /> },
-  'pythagoras':           { title: "Pythagoras' Theorem",           icon: '📐', render: () => <Pythagoras /> },
-  'number-line':          { title: 'Number Line',                   icon: '↔️', render: () => <NumberLine /> },
-  'unit-circle':          { title: 'Unit Circle',                   icon: '⭕', render: () => <UnitCircle /> },
+  'angle-types':          { title: 'Types of Angles',                   icon: '📐', minWidth: 500, render: () => <AngleTypes /> },
+  'triangle-types':       { title: 'Types of Triangles',                icon: '🔺', minWidth: 500, render: () => <TriangleTypes /> },
+  'quadrilateral-types':  { title: 'Types of Quadrilaterals',           icon: '⬜', minWidth: 500, render: () => <QuadrilateralTypes /> },
+  'circle-parts':         { title: 'Parts of a Circle',                 icon: '⭕', minWidth: 400, render: () => <CircleParts /> },
+  '3d-shapes':            { title: '3D Shapes — Volume & Surface Area', icon: '📦', minWidth: 500, render: () => <Shapes3D /> },
+  'transformations':      { title: 'Geometric Transformations',         icon: '🔄', minWidth: 500, render: () => <Transformations /> },
+  'cartesian-plane':      { title: 'Cartesian Plane',                   icon: '📊', minWidth: 340, render: () => <CartesianPlane /> },
+  'gradient-intercept':   { title: 'Gradient & Y-Intercept',            icon: '📈', minWidth: 420, render: () => <GradientIntercept /> },
+  'soh-cah-toa':          { title: 'SOH CAH TOA — Trigonometry',        icon: '📐', minWidth: 460, render: () => <SohCahToa /> },
+  'parabola-features':    { title: 'Features of a Parabola',            icon: '∪',  minWidth: 400, render: () => <ParabolaFeatures /> },
+  'area-formulas':        { title: 'Area Formulas',                      icon: '📐', minWidth: 500, render: () => <AreaFormulas /> },
+  'order-of-operations':  { title: 'Order of Operations (BODMAS)',      icon: '🔢', minWidth: 500, render: () => <OrderOfOperations /> },
+  'fraction-models':      { title: 'Fraction Models',                   icon: '½',  minWidth: 500, render: () => <FractionModels /> },
+  'scatter-plot':         { title: 'Scatter Plot Correlation',           icon: '📊', minWidth: 500, render: () => <ScatterPlotCorrelation /> },
+  'venn-diagram':         { title: 'Venn Diagram',                      icon: '⭕', minWidth: 380, render: () => <VennDiagram /> },
+  'index-laws':           { title: 'Index Laws',                        icon: '🔢', minWidth: 500, render: () => <IndexLaws /> },
+  'pythagoras':           { title: "Pythagoras' Theorem",               icon: '📐', minWidth: 400, render: () => <Pythagoras /> },
+  'number-line':          { title: 'Number Line',                       icon: '↔️', minWidth: 480, render: () => <NumberLine /> },
+  'unit-circle':          { title: 'Unit Circle',                       icon: '⭕', minWidth: 340, render: () => <UnitCircle /> },
 };
 
 // ── Widget component ──────────────────────────────────────────────────────────
@@ -1336,13 +1547,16 @@ export default function DiagramWidget({ id }: { id: string }) {
     );
   }
   return (
-    <div className="my-3 rounded-xl overflow-hidden border border-gray-700 shadow-sm">
-      <div className="px-4 py-2 bg-gray-800/80 border-b border-gray-700 flex items-center gap-2">
+    <div className="my-3 rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 shadow-sm">
+      <div className="px-4 py-2 bg-gray-100 dark:bg-gray-800/80 border-b border-gray-200 dark:border-gray-700 flex items-center gap-2">
         <span className="text-sm">{diagram.icon}</span>
-        <span className="text-xs font-medium text-gray-300">{diagram.title}</span>
+        <span className="text-xs font-medium text-gray-700 dark:text-gray-300">{diagram.title}</span>
       </div>
-      <div className="bg-gray-900/60 p-3">
-        {diagram.render()}
+      {/* overflow-x: auto ensures wide SVGs scroll on mobile instead of shrinking text to illegible sizes */}
+      <div className="bg-gray-50 dark:bg-gray-900/60 p-3 overflow-x-auto">
+        <div style={{ minWidth: diagram.minWidth }}>
+          {diagram.render()}
+        </div>
       </div>
     </div>
   );

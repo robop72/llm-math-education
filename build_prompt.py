@@ -92,21 +92,25 @@ Giving $x = 3$ or $x = -1$.
 DIAGRAM PROTOCOL (Maths only — use alongside graphs where appropriate):
 [Diagram: <key>]
 Available diagrams and when to use them:
-  [Diagram: number-line]         — integers, fractions, negatives, ordering numbers (Yr 7–8)
-  [Diagram: fraction-models]     — visualising fractions as bar or circle models (Yr 7)
-  [Diagram: order-of-operations] — BODMAS step-by-step priority (Yr 7–8)
-  [Diagram: angle-types]         — acute, right, obtuse, straight, reflex (Yr 7–8)
-  [Diagram: triangle-types]      — equilateral, isosceles, scalene, right-angled (Yr 7–8)
-  [Diagram: area-formulas]       — rectangle, triangle, circle, parallelogram, trapezium (Yr 7–9)
-  [Diagram: circle-parts]        — radius, diameter, chord, arc, sector, tangent (Yr 8–9)
-  [Diagram: index-laws]          — all 6 index laws with examples (Yr 8–9)
-  [Diagram: cartesian-plane]     — four quadrants, plotting points (Yr 8)
-  [Diagram: gradient-intercept]  — y=mx+b, rise/run, y-intercept (Yr 8–9)
-  [Diagram: pythagoras]          — right triangle with a²+b²=c² (Yr 8–9)
-  [Diagram: venn-diagram]        — A, B, intersection, neither for probability (Yr 8–10)
-  [Diagram: soh-cah-toa]         — SOH CAH TOA with labelled triangle (Yr 9–10)
-  [Diagram: parabola-features]   — vertex, axis of symmetry, x/y-intercepts (Yr 10)
-  [Diagram: unit-circle]         — sin/cos on unit circle, quadrants (Yr 10)
+  [Diagram: number-line]          — integers, fractions, negatives, ordering numbers (Yr 7–8)
+  [Diagram: fraction-models]      — visualising fractions as bar or circle models (Yr 7)
+  [Diagram: order-of-operations]  — BODMAS step-by-step priority (Yr 7–8)
+  [Diagram: angle-types]          — acute, right, obtuse, straight, reflex (Yr 7–8)
+  [Diagram: triangle-types]       — equilateral, isosceles, scalene, right-angled (Yr 7–8)
+  [Diagram: quadrilateral-types]  — square, rectangle, parallelogram, trapezium (Yr 7–8)
+  [Diagram: area-formulas]        — rectangle, triangle, circle, parallelogram, trapezium (Yr 7–9)
+  [Diagram: 3d-shapes]            — cube, prism, cylinder, cone with volume formulas (Yr 8–9)
+  [Diagram: transformations]      — translation, reflection, rotation, dilation (Yr 8)
+  [Diagram: circle-parts]         — radius, diameter, chord, arc, sector, tangent (Yr 8–9)
+  [Diagram: index-laws]           — all 6 index laws with examples (Yr 8–9)
+  [Diagram: cartesian-plane]      — four quadrants, plotting points (Yr 8)
+  [Diagram: gradient-intercept]   — y=mx+b, rise/run, y-intercept (Yr 8–9)
+  [Diagram: pythagoras]           — right triangle with a²+b²=c² (Yr 8–9)
+  [Diagram: venn-diagram]         — A, B, intersection, neither for probability (Yr 8–10)
+  [Diagram: soh-cah-toa]          — SOH CAH TOA with labelled triangle (Yr 9–10)
+  [Diagram: scatter-plot]         — positive, negative, and no correlation (Yr 9–10)
+  [Diagram: parabola-features]    — vertex, axis of symmetry, x/y-intercepts (Yr 10)
+  [Diagram: unit-circle]          — sin/cos on unit circle, quadrants (Yr 10)
 Rules:
 - Use only ONE diagram tag per response
 - Prefer [Graph: ...] for functions and curves; use [Diagram: ...] for conceptual geometry/number diagrams
@@ -151,14 +155,16 @@ Available diagrams and when to use them:
   [Diagram: circuit-parallel]          — parallel circuit with battery and bulbs
   [Diagram: wave-diagram]              — transverse wave: amplitude, wavelength, crest, trough
   [Diagram: particle-states]           — solid, liquid, gas particle arrangement
-  [Diagram: electromagnetic-spectrum]  — full EM spectrum from radio to gamma
-  [Diagram: human-body-systems]        — circulatory, digestive, and respiratory systems overview
-  [Diagram: dna-structure]             — DNA double helix with base pairs (A-T, C-G)
-  [Diagram: mitosis-stages]            — prophase, metaphase, anaphase, telophase, cytokinesis
-  [Diagram: rock-cycle]                — igneous, sedimentary, metamorphic with processes
-  [Diagram: ph-scale]                  — pH 0–14 with acid/neutral/alkaline examples
-  [Diagram: force-diagram]             — balanced vs unbalanced forces (Newton's First Law)
-  [Diagram: speed-velocity]            — distance-time and velocity-time graphs
+  [Diagram: electromagnetic-spectrum]      — full EM spectrum from radio to gamma
+  [Diagram: human-body-systems]            — circulatory, digestive, and respiratory systems overview
+  [Diagram: dna-structure]                 — DNA double helix with base pairs (A-T, C-G)
+  [Diagram: mitosis-stages]                — prophase, metaphase, anaphase, telophase, cytokinesis
+  [Diagram: rock-cycle]                    — igneous, sedimentary, metamorphic with processes
+  [Diagram: ph-scale]                      — pH 0–14 with acid/neutral/alkaline examples
+  [Diagram: force-diagram]                 — balanced vs unbalanced forces (Newton's First Law)
+  [Diagram: speed-velocity]                — distance-time and velocity-time graphs
+  [Diagram: photosynthesis-respiration]    — photosynthesis vs cellular respiration comparison
+  [Diagram: periodic-table-structure]      — metals, non-metals, metalloids, groups, periods
 Rules:
 - Use only ONE diagram tag per response
 - Only use for Science — never for English or Maths
