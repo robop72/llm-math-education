@@ -491,7 +491,9 @@ const TOTAL_STEPS = 5;
 
 export default function IntakeForm({ onComplete, onBack, onClear, initialProfile }: Props) {
   const isEditing = !!initialProfile;
-  const [step, setStep] = useState<number>(isEditing ? 1 : 0);
+  const hasPin = !!localStorage.getItem('voxii-parent-pin');
+  // Skip consent step only if editing AND pin already exists
+  const [step, setStep] = useState<number>(isEditing && hasPin ? 1 : 0);
 
   // Consent fields (Step 0 only, not persisted to profile)
   const [parentName, setParentName] = useState('');
@@ -550,7 +552,8 @@ export default function IntakeForm({ onComplete, onBack, onClear, initialProfile
   }
 
   function handleBack() {
-    if (step === (isEditing ? 1 : 0)) {
+    const firstStep = isEditing && hasPin ? 1 : 0;
+    if (step === firstStep) {
       onBack();
     } else {
       setStep(s => s - 1);
@@ -587,7 +590,7 @@ export default function IntakeForm({ onComplete, onBack, onClear, initialProfile
   }
 
   const isLastStep = step === 4;
-  const isFirstStep = step === (isEditing ? 1 : 0);
+  const isFirstStep = step === (isEditing && hasPin ? 1 : 0);
   // Progress from 0% (step 0) to 100% (step 4)
   const progress = (step / (TOTAL_STEPS - 1)) * 100;
 
