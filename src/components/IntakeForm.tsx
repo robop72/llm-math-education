@@ -654,43 +654,41 @@ export default function IntakeForm({ onComplete, onBack, onClear, initialProfile
   const progress = (step / (TOTAL_STEPS - 1)) * 100;
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex flex-col items-center justify-start px-4 py-8">
-      <div className="w-full max-w-lg">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <img src="/voxii-logo.png" alt="Voxii AI" className="h-8 object-contain" />
-          </div>
-          {initialProfile && onClear && (
-            <button
-              type="button"
-              onClick={onClear}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-red-500 dark:text-red-400 border border-red-300 dark:border-red-700/60 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-            >
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-              </svg>
-              Clear profile
-            </button>
-          )}
-        </div>
+    <div className="h-[100dvh] bg-gray-50 dark:bg-gray-950 flex flex-col">
+      {/* ── Fixed header ── */}
+      <div className="flex-shrink-0 flex items-center justify-between px-4 pt-4 pb-2 max-w-lg w-full mx-auto">
+        <img src="/voxii-logo.png" alt="Voxii AI" className="h-7 object-contain" />
+        {initialProfile && onClear && (
+          <button
+            type="button"
+            onClick={onClear}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-red-500 dark:text-red-400 border border-red-300 dark:border-red-700/60 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+            Clear
+          </button>
+        )}
+      </div>
 
-        {/* Progress bar */}
-        <div className="mb-6">
-          <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mb-1.5">
-            <span className="font-medium text-gray-700 dark:text-gray-300">{STEP_TITLES[step]}</span>
-            <span>Step {step + 1} of {TOTAL_STEPS}</span>
-          </div>
-          <div className="h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-blue-500 rounded-full transition-all duration-300"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
+      {/* ── Fixed progress bar ── */}
+      <div className="flex-shrink-0 px-4 pb-3 max-w-lg w-full mx-auto">
+        <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mb-1.5">
+          <span className="font-medium text-gray-700 dark:text-gray-300">{STEP_TITLES[step]}</span>
+          <span>Step {step + 1} of {TOTAL_STEPS}</span>
         </div>
+        <div className="h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+          <div
+            className="h-full bg-blue-500 rounded-full transition-all duration-300"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+      </div>
 
-        {/* Card */}
-        <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm p-5 sm:p-6">
+      {/* ── Scrollable card content ── */}
+      <div className="flex-1 overflow-y-auto px-4 max-w-lg w-full mx-auto">
+        <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm p-5">
           {step === 0 && (
             <Step0
               parentName={parentName} setParentName={setParentName}
@@ -708,9 +706,11 @@ export default function IntakeForm({ onComplete, onBack, onClear, initialProfile
           {step === 3 && <Step3 draft={draft} onChange={patch} />}
           {step === 4 && <Step4 draft={draft} onChange={patch} studentPin={studentPin} onStudentPinChange={setStudentPin} />}
         </div>
+      </div>
 
-        {/* Navigation */}
-        <div className="flex gap-3 mt-4">
+      {/* ── Fixed navigation ── */}
+      <div className="flex-shrink-0 px-4 pt-3 pb-4 max-w-lg w-full mx-auto space-y-2">
+        <div className="flex gap-3">
           <button
             type="button"
             onClick={handleBack}
@@ -743,20 +743,17 @@ export default function IntakeForm({ onComplete, onBack, onClear, initialProfile
                   </svg>
                   Saving...
                 </>
-              ) : (
-                'Save profile'
-              )}
+              ) : 'Save profile'}
             </button>
           )}
         </div>
 
-        {/* Save now — only when editing, only on non-final steps */}
         {isEditing && !isLastStep && (
           <button
             type="button"
             onClick={handleSaveNow}
             disabled={submitting}
-            className="w-full mt-2 py-2 rounded-xl text-sm font-medium text-green-600 dark:text-green-400 border border-green-300 dark:border-green-700/60 hover:bg-green-50 dark:hover:bg-green-900/20 disabled:opacity-50 transition-colors flex items-center justify-center gap-1.5"
+            className="w-full py-2 rounded-xl text-sm font-medium text-green-600 dark:text-green-400 border border-green-300 dark:border-green-700/60 hover:bg-green-50 dark:hover:bg-green-900/20 disabled:opacity-50 transition-colors flex items-center justify-center gap-1.5"
           >
             {submitting ? (
               <>
@@ -777,7 +774,7 @@ export default function IntakeForm({ onComplete, onBack, onClear, initialProfile
           </button>
         )}
 
-        <p className="text-[10px] text-gray-400 dark:text-gray-600 text-center mt-3">
+        <p className="text-[10px] text-gray-400 dark:text-gray-600 text-center">
           Profile stored locally. Personalisation is invisible to the student.
         </p>
       </div>
