@@ -149,21 +149,27 @@ export default function ChatInterface({
       recognitionRef.current?.stop();
       return;
     }
+    const baseline = input; // snapshot input before mic starts
     const rec = new SR();
     rec.lang = 'en-AU';
     rec.interimResults = false;
     rec.maxAlternatives = 1;
     recognitionRef.current = rec;
     rec.onresult = (e: any) => {
-      const transcript = e.results[0][0].transcript;
-      setInput(prev => prev ? `${prev} ${transcript}` : transcript);
+      // Collect all final results from this event into one transcript
+      const transcript = Array.from(e.results as any[])
+        .map((r: any) => r[0].transcript)
+        .join(' ')
+        .trim();
+      setInput(baseline ? `${baseline} ${transcript}` : transcript);
+      rec.stop(); // prevent onresult firing again with duplicate chunks
       setIsListening(false);
     };
     rec.onerror = () => setIsListening(false);
     rec.onend = () => setIsListening(false);
     rec.start();
     setIsListening(true);
-  }, [isListening]);
+  }, [isListening, input]);
 
   const hasMicSupport = typeof window !== 'undefined' &&
     ((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition);
