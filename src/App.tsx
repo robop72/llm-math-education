@@ -17,25 +17,10 @@ import { YearLevel, Subject, ALLOWED_YEAR_LEVELS, ALLOWED_SUBJECTS } from './lib
 type View = 'chat' | 'parent-pin' | 'parent-dashboard' | 'intake';
 
 export default function App() {
+  // ── All hooks must be called unconditionally before any early returns ──────
   const { session, loading: authLoading, supabaseEnabled, authError, signOut } = useAuth();
   const { dark, toggle } = useTheme();
   const { data: streakData, milestone, recordMessage, dismissMilestone } = useStreak();
-
-  // Supabase auth gate
-  if (supabaseEnabled && authLoading) {
-    return (
-      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
-        <svg className="w-8 h-8 animate-spin text-blue-500" fill="none" viewBox="0 0 24 24">
-          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
-        </svg>
-      </div>
-    );
-  }
-  if (supabaseEnabled && !session) return <AuthScreen initialError={authError} />;
-
-  const accessToken = session?.access_token;
-  // Start open on desktop, closed on mobile
   const [sidebarOpen, setSidebarOpen] = useState(() =>
     typeof window !== 'undefined' ? window.innerWidth >= 768 : true
   );
@@ -63,14 +48,27 @@ export default function App() {
     sessions, currentId, messages, isLoading, apiSessionId,
     sendMessage: sendMessageRaw, startNewChat, loadSession, deleteSession,
     togglePin, renameSession, cancelMessage,
-  } = useChat({ yearLevel, subject, isNaplanMode, studentProfile: profile, accessToken });
+  } = useChat({ yearLevel, subject, isNaplanMode, studentProfile: profile, accessToken: session?.access_token });
 
   const sendMessage = useCallback((msg: string) => {
     recordMessage();
     sendMessageRaw(msg);
   }, [sendMessageRaw, recordMessage]);
 
-  // Close sidebar on mobile after selecting a session
+  // ── Auth gate — safe to return early now that all hooks are called ─────────
+  if (supabaseEnabled && authLoading) {
+    return (
+      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
+        <svg className="w-8 h-8 animate-spin text-blue-500" fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+        </svg>
+      </div>
+    );
+  }
+  if (supabaseEnabled && !session) return <AuthScreen initialError={authError} />;
+
+  // ── View routing ──────────────────────────────────────────────────────────
   function handleLoadSession(id: string) {
     loadSession(id);
     if (window.innerWidth < 768) setSidebarOpen(false);
@@ -97,7 +95,6 @@ export default function App() {
       {milestone !== null && (
         <MilestoneModal days={milestone} onDismiss={dismissMilestone} />
       )}
-      {/* Mobile backdrop */}
       {sidebarOpen && (
         <div
           className="fixed inset-0 bg-black/60 z-30 md:hidden"
@@ -123,9 +120,7 @@ export default function App() {
       />
 
       <div className="flex flex-col flex-1 min-w-0">
-        {/* Top bar */}
         <div className="flex items-center gap-2 px-3 py-2.5 border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-950 flex-shrink-0">
-          {/* Mobile hamburger */}
           <button
             className="md:hidden p-1.5 text-gray-400 hover:text-gray-200 flex-shrink-0 transition-colors"
             onClick={() => setSidebarOpen(o => !o)}
@@ -136,7 +131,6 @@ export default function App() {
             </svg>
           </button>
 
-          {/* Scrollable controls */}
           <div className="flex items-center gap-2 overflow-x-auto scrollbar-none flex-1 min-w-0">
             {profile ? (
               <span className="flex-shrink-0 px-3 py-1.5 rounded-full text-sm font-medium bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-700">
@@ -194,7 +188,6 @@ export default function App() {
           <div className="flex-shrink-0 pl-2">
             <StreakDisplay data={streakData} />
           </div>
-
         </div>
 
         <div className="flex-1 min-h-0">
@@ -209,7 +202,7 @@ export default function App() {
             studentName={profile?.student_name || undefined}
             ttsEnabled={profile?.tts_enabled !== false}
             apiSessionId={apiSessionId}
-            accessToken={accessToken}
+            accessToken={session?.access_token}
           />
         </div>
       </div>
