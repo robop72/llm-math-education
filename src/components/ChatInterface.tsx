@@ -93,6 +93,8 @@ export default function ChatInterface({
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const recognitionRef = useRef<any>(null);
   const isListeningRef = useRef(false);
+  const messagesRef = useRef(messages);
+  useEffect(() => { messagesRef.current = messages; }, [messages]);
 
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -120,7 +122,8 @@ export default function ChatInterface({
       setIsReading(false);
       return;
     }
-    const lastTutor = [...messages].reverse().find(m => m.role === 'tutor');
+    const tutorMsgs = messagesRef.current.filter(m => m.role === 'tutor');
+    const lastTutor = tutorMsgs[tutorMsgs.length - 1];
     if (!lastTutor) return;
     const cleanText = stripForTTS(lastTutor.text).slice(0, 4000);
     setIsReading(true);
@@ -143,7 +146,7 @@ export default function ChatInterface({
     } catch {
       setIsReading(false);
     }
-  }, [isReading, messages, accessToken, apiSessionId]);
+  }, [isReading, accessToken, apiSessionId]);
 
   const startRecognition = useCallback(() => {
     const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;

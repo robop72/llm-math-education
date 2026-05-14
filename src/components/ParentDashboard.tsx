@@ -3,6 +3,8 @@ import { useParentAnalytics } from '../hooks/useParentAnalytics';
 import { getReports, SafetyReport } from '../utils/safety';
 import { StrandStat, RecentSession } from '../hooks/useParentAnalytics';
 import { StoredProfile } from '../hooks/useStudentProfile';
+import { useMfa } from '../hooks/useMfa';
+import MfaSetup from './MfaSetup';
 
 function ActivityRing({ minutes, goal }: { minutes: number; goal: number }) {
   const R = 52, C = 2 * Math.PI * R;
@@ -125,6 +127,9 @@ export default function ParentDashboard({ onBack, onSignOut, profiles = [], acti
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [deleteError, setDeleteError] = useState('');
+  const [showMfaSetup, setShowMfaSetup] = useState(false);
+  const { enrolledFactor, unenroll } = useMfa(true);
+  const [mfaUnenrolling, setMfaUnenrolling] = useState(false);
 
   useEffect(() => {
     setReports(getReports());
@@ -318,6 +323,51 @@ export default function ParentDashboard({ onBack, onSignOut, profiles = [], acti
               </div>
             </div>
           )}
+
+          {/* 2-step verification */}
+          <div className="border-t border-gray-700 pt-4">
+            {showMfaSetup ? (
+              <div className="space-y-2">
+                <p className="text-sm font-semibold text-white mb-3">Set up 2-step verification</p>
+                <MfaSetup sessionReady={true} onDone={() => setShowMfaSetup(false)} />
+              </div>
+            ) : enrolledFactor ? (
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <svg className="w-4 h-4 text-green-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                      d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                  </svg>
+                  <div>
+                    <p className="text-sm text-white font-medium">2-step verification enabled</p>
+                    <p className="text-xs text-gray-400">Your account is protected with an authenticator app.</p>
+                  </div>
+                </div>
+                <button
+                  onClick={async () => {
+                    setMfaUnenrolling(true);
+                    try { await unenroll(enrolledFactor.id); } catch {}
+                    setMfaUnenrolling(false);
+                  }}
+                  disabled={mfaUnenrolling}
+                  className="text-xs text-gray-500 hover:text-red-400 transition-colors disabled:opacity-50 flex-shrink-0"
+                >
+                  {mfaUnenrolling ? 'Removing…' : 'Remove'}
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => { setShowMfaSetup(true); setShowPinReset(false); setShowDeleteConfirm(false); }}
+                className="flex items-center gap-2 text-sm text-gray-300 hover:text-white transition-colors"
+              >
+                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+                Enable 2-step verification
+              </button>
+            )}
+          </div>
 
           {/* Right to deletion */}
           <div className="border-t border-gray-700 pt-4">
