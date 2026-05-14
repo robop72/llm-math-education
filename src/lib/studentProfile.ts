@@ -22,6 +22,8 @@ export interface StudentProfile {
   engagement_tone: EngagementTone;
   focus_limit_minutes: number;
   tts_enabled: boolean;
+  avatar?: string;
+  student_pin?: string;
 }
 
 export interface IntakeQuestionnaire {

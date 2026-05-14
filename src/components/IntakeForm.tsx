@@ -4,6 +4,7 @@ import {
   EngagementTone, GuidancePreference, deriveProfileClientSide,
 } from '../lib/studentProfile';
 import { ALLOWED_SUBJECTS } from '../lib/curriculumConfig';
+import { AVATARS, getAvatar } from '../lib/avatars';
 
 
 const STATES = ['ACT', 'NSW', 'NT', 'QLD', 'SA', 'TAS', 'VIC', 'WA'];
@@ -244,9 +245,35 @@ function Step0({
 
 // ── Step 1: Student details ───────────────────────────────────────────────────
 
-function Step1({ draft, onChange }: { draft: IntakeQuestionnaire; onChange: (p: Partial<IntakeQuestionnaire>) => void }) {
+function Step1({ draft, onChange, selectedAvatar, onAvatarChange }: {
+  draft: IntakeQuestionnaire;
+  onChange: (p: Partial<IntakeQuestionnaire>) => void;
+  selectedAvatar: string;
+  onAvatarChange: (id: string) => void;
+}) {
   return (
     <div className="space-y-5">
+      {/* Avatar picker */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Choose an avatar</label>
+        <div className="grid grid-cols-6 gap-2">
+          {AVATARS.map(a => (
+            <button
+              key={a.id}
+              type="button"
+              onClick={() => onAvatarChange(a.id)}
+              className={`flex flex-col items-center gap-1 p-1 rounded-xl transition-all ${
+                selectedAvatar === a.id ? 'ring-2 ring-offset-2 ring-offset-white dark:ring-offset-gray-900 ' + a.ring : 'opacity-70 hover:opacity-100'
+              }`}
+            >
+              <div className={`w-10 h-10 rounded-full ${a.bg} flex items-center justify-center text-xl`}>
+                {a.emoji}
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+
       <div>
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">First name <span className="text-gray-400 font-normal">(optional)</span></label>
         <input
@@ -402,7 +429,12 @@ function Step3({ draft, onChange }: { draft: IntakeQuestionnaire; onChange: (p: 
 
 // ── Step 4: Learning preferences ─────────────────────────────────────────────
 
-function Step4({ draft, onChange }: { draft: IntakeQuestionnaire; onChange: (p: Partial<IntakeQuestionnaire>) => void }) {
+function Step4({ draft, onChange, studentPin, onStudentPinChange }: {
+  draft: IntakeQuestionnaire;
+  onChange: (p: Partial<IntakeQuestionnaire>) => void;
+  studentPin: string;
+  onStudentPinChange: (v: string) => void;
+}) {
   return (
     <div className="space-y-5">
       <div>
@@ -478,6 +510,24 @@ function Step4({ draft, onChange }: { draft: IntakeQuestionnaire; onChange: (p: 
           Allows Voxii to read responses aloud using text-to-speech.
         </p>
       </div>
+
+      <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+          Student PIN <span className="text-gray-400 font-normal">(optional)</span>
+        </label>
+        <input
+          type="password"
+          inputMode="numeric"
+          maxLength={6}
+          value={studentPin}
+          onChange={e => onStudentPinChange(e.target.value.replace(/\D/g, '').slice(0, 6))}
+          placeholder="4–6 digits"
+          className="w-full px-3 py-2 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm outline-none focus:border-blue-400 transition-colors"
+        />
+        <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+          Keeps this student's sessions private when sharing the app with siblings. Leave blank for no PIN.
+        </p>
+      </div>
     </div>
   );
 }
@@ -524,6 +574,10 @@ export default function IntakeForm({ onComplete, onBack, onClear, initialProfile
     }
     return { ...DEFAULT_DRAFT };
   });
+  const [selectedAvatar, setSelectedAvatar] = useState<string>(
+    initialProfile?.avatar ?? AVATARS[Math.floor(Math.random() * AVATARS.length)].id
+  );
+  const [studentPin, setStudentPin] = useState(initialProfile?.student_pin ?? '');
   const [submitting, setSubmitting] = useState(false);
 
   function patch(p: Partial<IntakeQuestionnaire>) {
@@ -565,6 +619,11 @@ export default function IntakeForm({ onComplete, onBack, onClear, initialProfile
     if (parentPin) {
       localStorage.setItem('voxii-parent-pin', parentPin);
     }
+    const extra: Partial<StudentProfile> = {
+      id: initialProfile?.id,
+      avatar: selectedAvatar,
+      student_pin: studentPin.length >= 4 ? studentPin : undefined,
+    };
     try {
       const res = await fetch('/api/intake', {
         method: 'POST',
@@ -579,11 +638,10 @@ export default function IntakeForm({ onComplete, onBack, onClear, initialProfile
       });
       if (!res.ok) throw new Error('API error');
       const profile: StudentProfile = await res.json();
-      onComplete(profile);
+      onComplete({ ...profile, ...extra });
     } catch {
-      // Fallback: classify client-side if API is unreachable
       const profile = deriveProfileClientSide(draft);
-      onComplete(profile);
+      onComplete({ ...profile, ...extra });
     } finally {
       setSubmitting(false);
     }
@@ -644,10 +702,10 @@ export default function IntakeForm({ onComplete, onBack, onClear, initialProfile
               pinTouched={pinTouched} setPinTouched={setPinTouched}
             />
           )}
-          {step === 1 && <Step1 draft={draft} onChange={patch} />}
+          {step === 1 && <Step1 draft={draft} onChange={patch} selectedAvatar={selectedAvatar} onAvatarChange={setSelectedAvatar} />}
           {step === 2 && <Step2 draft={draft} onChange={patch} />}
           {step === 3 && <Step3 draft={draft} onChange={patch} />}
-          {step === 4 && <Step4 draft={draft} onChange={patch} />}
+          {step === 4 && <Step4 draft={draft} onChange={patch} studentPin={studentPin} onStudentPinChange={setStudentPin} />}
         </div>
 
         {/* Navigation */}
