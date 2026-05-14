@@ -156,17 +156,15 @@ export default function ChatInterface({
     rec.maxAlternatives = 1;
     recognitionRef.current = rec;
     rec.onresult = (e: any) => {
-      // Collect all final results from this event into one transcript
+      // Overwrite with full transcript each time so partial results don't stack
       const transcript = Array.from(e.results as any[])
         .map((r: any) => r[0].transcript)
         .join(' ')
         .trim();
       setInput(baseline ? `${baseline} ${transcript}` : transcript);
-      rec.stop(); // prevent onresult firing again with duplicate chunks
-      setIsListening(false);
     };
     rec.onerror = () => setIsListening(false);
-    rec.onend = () => setIsListening(false);
+    rec.onend = () => setIsListening(false); // only stop indicator when recognition truly ends
     rec.start();
     setIsListening(true);
   }, [isListening, input]);
