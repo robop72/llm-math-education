@@ -10,9 +10,15 @@ export default function ParentPin({ onSuccess, onBack }: Props) {
   const [error, setError] = useState('');
   const [shake, setShake] = useState(false);
 
+  const storedPin = localStorage.getItem('voxii-parent-pin');
+
   const verify = useCallback((entered: string) => {
-    const stored = localStorage.getItem('voxii-parent-pin') ?? '1234';
-    if (entered === stored) {
+    if (!storedPin) {
+      setError('No PIN set. Please complete the student profile setup first.');
+      setPin('');
+      return;
+    }
+    if (entered === storedPin) {
       sessionStorage.setItem('voxii-parent-auth', 'true');
       onSuccess();
     } else {
@@ -21,7 +27,7 @@ export default function ParentPin({ onSuccess, onBack }: Props) {
       setError('Incorrect PIN. Please try again.');
       setTimeout(() => setShake(false), 500);
     }
-  }, [onSuccess]);
+  }, [onSuccess, storedPin]);
 
   const handleDigit = useCallback((d: string) => {
     setPin(prev => {
@@ -104,7 +110,7 @@ export default function ParentPin({ onSuccess, onBack }: Props) {
             })}
           </div>
 
-          <p className="text-xs text-center text-gray-500 mt-4">Default PIN: 1234. Change in Settings.</p>
+          <p className="text-xs text-center text-gray-500 mt-4">This PIN protects the parent dashboard on this device.</p>
         </div>
 
         <button

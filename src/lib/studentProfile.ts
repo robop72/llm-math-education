@@ -20,6 +20,7 @@ export interface StudentProfile {
   guidance_preference: GuidancePreference;
   engagement_tone: EngagementTone;
   focus_limit_minutes: number;
+  tts_enabled: boolean;
 }
 
 export interface IntakeQuestionnaire {
@@ -32,6 +33,7 @@ export interface IntakeQuestionnaire {
   guidance_preference: GuidancePreference;
   engagement_tone: EngagementTone;
   focus_limit_minutes: number;
+  tts_enabled: boolean;
 }
 
 // Client-side classification mirrors intake_classifier.py
@@ -63,5 +65,6 @@ export function deriveProfileClientSide(q: IntakeQuestionnaire): StudentProfile 
     guidance_preference: q.guidance_preference,
     engagement_tone: q.engagement_tone,
     focus_limit_minutes: q.focus_limit_minutes,
+    tts_enabled: q.tts_enabled,
   };
 }

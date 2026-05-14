@@ -1,7 +1,6 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { Mic, MicOff, Send, Square, Volume2 } from 'lucide-react';
 
-const API = import.meta.env.VITE_API_URL ?? 'https://voxii-tutor-backend-919882895306.australia-southeast1.run.app';
 
 function stripForTTS(text: string): string {
   return text
@@ -30,6 +29,9 @@ interface Props {
   sendMessage: (text: string) => void;
   cancelMessage: () => void;
   studentName?: string;
+  ttsEnabled?: boolean;
+  apiSessionId?: string;
+  accessToken?: string;
 }
 
 const THINKING_PHRASES = [
@@ -80,6 +82,7 @@ function ThinkingBubble() {
 export default function ChatInterface({
   yearLevel, subject, isNaplanMode = false,
   messages, isLoading, sendMessage, cancelMessage, studentName,
+  ttsEnabled = true, apiSessionId, accessToken,
 }: Props) {
   const [input, setInput] = useState('');
   const [isReading, setIsReading] = useState(false);
@@ -119,10 +122,12 @@ export default function ChatInterface({
     const cleanText = stripForTTS(lastTutor.text).slice(0, 4000);
     setIsReading(true);
     try {
-      const res = await fetch(`${API}/tts`, {
+      const ttsHeaders: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (accessToken) ttsHeaders['Authorization'] = `Bearer ${accessToken}`;
+      const res = await fetch('/api/tts', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: cleanText }),
+        headers: ttsHeaders,
+        body: JSON.stringify({ text: cleanText, session_id: apiSessionId }),
       });
       if (!res.ok) throw new Error('TTS failed');
       const blob = await res.blob();
@@ -173,19 +178,21 @@ export default function ChatInterface({
 
   const inputBar = (
     <div className="flex items-end gap-2 bg-gray-100/80 dark:bg-gray-800/80 border border-gray-300 dark:border-gray-700 rounded-3xl px-4 py-3 focus-within:border-gray-400 dark:focus-within:border-gray-600 transition-colors">
-      <button
-        onClick={handleReadAloud}
-        disabled={!hasLastTutorMsg}
-        title={isReading ? 'Stop reading' : 'Read last response aloud'}
-        className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors disabled:opacity-30 disabled:cursor-not-allowed ${
-          isReading
-            ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400'
-            : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
-        }`}
-      >
-        {isReading ? <Square size={12} /> : <Volume2 size={12} />}
-        {isReading ? 'Stop' : 'Read Aloud'}
-      </button>
+      {ttsEnabled && (
+        <button
+          onClick={handleReadAloud}
+          disabled={!hasLastTutorMsg}
+          title={isReading ? 'Stop reading' : 'Read last response aloud'}
+          className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors disabled:opacity-30 disabled:cursor-not-allowed ${
+            isReading
+              ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400'
+              : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
+          }`}
+        >
+          {isReading ? <Square size={12} /> : <Volume2 size={12} />}
+          {isReading ? 'Stop' : 'Read Aloud'}
+        </button>
+      )}
 
       <textarea
         ref={textareaRef}

@@ -6,6 +6,9 @@ import tiktoken
 
 EMBEDDING_DIM = 1536
 MAX_TOKENS_PER_REQUEST = 8191
+# TODO: upgrade to text-embedding-3-small on next re-index.
+# Requires rebuilding all stored embeddings — do NOT change mid-index as stored
+# and query embeddings must use the same model and dimensionality.
 EMBEDDING_MODEL = "text-embedding-ada-002"
 
 

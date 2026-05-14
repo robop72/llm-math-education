@@ -108,15 +108,46 @@ function ComingSoonCard({ icon, title, description }: { icon: string; title: str
 
 interface Props {
   onBack: () => void;
+  onSignOut?: () => void;
 }
 
-export default function ParentDashboard({ onBack }: Props) {
+export default function ParentDashboard({ onBack, onSignOut }: Props) {
   const analytics = useParentAnalytics();
   const [reports, setReports] = useState<SafetyReport[]>([]);
+  const [showPinReset, setShowPinReset] = useState(false);
+  const [newPin, setNewPin] = useState('');
+  const [pinError, setPinError] = useState('');
+  const [pinSaved, setPinSaved] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [deleteError, setDeleteError] = useState('');
 
   useEffect(() => {
     setReports(getReports());
   }, []);
+
+  function handleDeleteData() {
+    if (deleteConfirmText !== 'DELETE') {
+      setDeleteError('Type DELETE (in capitals) to confirm.');
+      return;
+    }
+    const keysToRemove = Object.keys(localStorage).filter(k => k.startsWith('voxii-'));
+    keysToRemove.forEach(k => localStorage.removeItem(k));
+    sessionStorage.removeItem('voxii-parent-auth');
+    onBack();
+  }
+
+  function handlePinReset() {
+    if (!/^\d{4,6}$/.test(newPin)) {
+      setPinError('PIN must be 4–6 digits.');
+      return;
+    }
+    localStorage.setItem('voxii-parent-pin', newPin);
+    setNewPin('');
+    setPinError('');
+    setPinSaved(true);
+    setTimeout(() => { setPinSaved(false); setShowPinReset(false); }, 1500);
+  }
 
   const {
     studentName, sessionsThisWeek, estimatedMinutes, weeklyGoal,
@@ -134,7 +165,11 @@ export default function ParentDashboard({ onBack }: Props) {
           <span className="text-sm text-gray-500">Parent Portal</span>
         </div>
         <button
-          onClick={() => { sessionStorage.removeItem('voxii-parent-auth'); onBack(); }}
+          onClick={async () => {
+            sessionStorage.removeItem('voxii-parent-auth');
+            if (onSignOut) await onSignOut();
+            onBack();
+          }}
           className="text-sm text-gray-400 hover:text-gray-200 transition-colors"
         >
           Sign out
@@ -219,6 +254,97 @@ export default function ParentDashboard({ onBack }: Props) {
             </div>
           </section>
         )}
+
+        <section className="bg-gray-800 rounded-2xl border border-gray-700 p-5 space-y-4">
+          <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Account</h2>
+
+          {/* PIN reset */}
+          {!showPinReset ? (
+            <button
+              onClick={() => { setShowPinReset(true); setPinSaved(false); setShowDeleteConfirm(false); }}
+              className="flex items-center gap-2 text-sm text-gray-300 hover:text-white transition-colors"
+            >
+              <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+              </svg>
+              Reset parent portal PIN
+            </button>
+          ) : (
+            <div className="space-y-3">
+              <p className="text-sm text-gray-300">Enter a new PIN (4–6 digits):</p>
+              <input
+                type="password"
+                inputMode="numeric"
+                maxLength={6}
+                value={newPin}
+                onChange={e => { setNewPin(e.target.value.replace(/\D/g, '').slice(0, 6)); setPinError(''); }}
+                placeholder="New PIN"
+                className="w-full px-3 py-2 rounded-xl border border-gray-600 bg-gray-900 text-white text-sm outline-none focus:border-blue-500 transition-colors"
+              />
+              {pinError && <p className="text-xs text-red-400">{pinError}</p>}
+              {pinSaved && <p className="text-xs text-green-400">PIN updated successfully.</p>}
+              <div className="flex gap-2">
+                <button
+                  onClick={handlePinReset}
+                  className="flex-1 py-2 rounded-xl text-sm font-semibold text-white bg-blue-500 hover:bg-blue-600 transition-colors"
+                >
+                  Save new PIN
+                </button>
+                <button
+                  onClick={() => { setShowPinReset(false); setNewPin(''); setPinError(''); }}
+                  className="flex-1 py-2 rounded-xl text-sm font-medium text-gray-300 bg-gray-700 hover:bg-gray-600 transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Right to deletion */}
+          <div className="border-t border-gray-700 pt-4">
+            {!showDeleteConfirm ? (
+              <button
+                onClick={() => { setShowDeleteConfirm(true); setShowPinReset(false); setDeleteConfirmText(''); setDeleteError(''); }}
+                className="flex items-center gap-2 text-sm text-red-400 hover:text-red-300 transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                Delete all student data from this device
+              </button>
+            ) : (
+              <div className="space-y-3 rounded-xl border border-red-800 bg-red-900/20 p-4">
+                <p className="text-sm font-semibold text-red-400">Delete all data?</p>
+                <p className="text-xs text-gray-400 leading-relaxed">
+                  This will permanently erase the student profile, all chat history, and your parent PIN from this device. This cannot be undone.
+                </p>
+                <p className="text-xs text-gray-300">Type <span className="font-mono font-bold text-red-400">DELETE</span> to confirm:</p>
+                <input
+                  type="text"
+                  value={deleteConfirmText}
+                  onChange={e => { setDeleteConfirmText(e.target.value); setDeleteError(''); }}
+                  placeholder="DELETE"
+                  className="w-full px-3 py-2 rounded-xl border border-red-700 bg-gray-900 text-white text-sm outline-none focus:border-red-500 transition-colors"
+                />
+                {deleteError && <p className="text-xs text-red-400">{deleteError}</p>}
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleDeleteData}
+                    className="flex-1 py-2 rounded-xl text-sm font-semibold text-white bg-red-600 hover:bg-red-700 transition-colors"
+                  >
+                    Delete all data
+                  </button>
+                  <button
+                    onClick={() => { setShowDeleteConfirm(false); setDeleteConfirmText(''); setDeleteError(''); }}
+                    className="flex-1 py-2 rounded-xl text-sm font-medium text-gray-300 bg-gray-700 hover:bg-gray-600 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </section>
 
         <section>
           <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">More Features Coming Soon</h2>

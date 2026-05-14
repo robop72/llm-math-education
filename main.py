@@ -1,24 +1,44 @@
-﻿__import__('pysqlite3')
+__import__('pysqlite3')
 import sys
 sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
 
 import os
 import re
-from fastapi import FastAPI, HTTPException
+import json
+import hashlib
+import datetime
+from collections import OrderedDict
+from dotenv import load_dotenv
+
+load_dotenv()  # loads .env for local dev; Cloud Run injects env vars directly
+
+from fastapi import FastAPI, HTTPException, Request, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from jose import JWTError, jwt as jose_jwt
 from pydantic import BaseModel
 from typing import Optional, List, Dict, Any
 from google.cloud import texttospeech
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI
 from langchain_chroma import Chroma
-from langchain_community.chat_message_histories import ChatMessageHistory
+from langchain_community.chat_message_histories import ChatMessageHistory, RedisChatMessageHistory
 from build_prompt import build_system_prompt
 from intake_classifier import derive_profile_from_questionnaire
 from personalized_prompt import generate_personalized_prompt
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
+import tiktoken
+from openai import OpenAI as OpenAIClient
 
-# 1. Initialize FastAPI
+# ── Rate limiter ───────────────────────────────────────────────────────────────
+limiter = Limiter(key_func=get_remote_address)
+
+# ── FastAPI app ────────────────────────────────────────────────────────────────
 app = FastAPI(title="Voxii Master Expert Tutor")
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 app.add_middleware(
     CORSMiddleware,
@@ -32,34 +52,212 @@ app.add_middleware(
         "http://localhost:5173",
     ],
     allow_methods=["POST", "GET"],
-    allow_headers=["Content-Type"],
+    allow_headers=["Content-Type", "Authorization"],
 )
 
-# 2. Initialize Expert Brain (ChromaDB)
-# Note: Ensure you have run expert_expansion.py and update_brain.py locally first
+# ── Auth — Supabase JWT (ES256, production) or API_SECRET bearer (local dev) ───
+_security = HTTPBearer()
+_API_SECRET = os.environ.get("API_SECRET", "")
+
+# Parse SUPABASE_JWKS env var (JSON string containing the public key set).
+# The public key is safe to store in env — only the private key is sensitive.
+_SUPABASE_JWK: dict | None = None
+_jwks_raw = os.environ.get("SUPABASE_JWKS", "")
+if _jwks_raw:
+    try:
+        _parsed = json.loads(_jwks_raw)
+        _SUPABASE_JWK = _parsed["keys"][0] if "keys" in _parsed else _parsed
+    except Exception as _e:
+        print(f"[auth] Failed to parse SUPABASE_JWKS: {_e}")
+
+
+async def verify_auth(creds: HTTPAuthorizationCredentials = Depends(_security)):
+    token = creds.credentials
+    if _SUPABASE_JWK:
+        try:
+            payload = jose_jwt.decode(
+                token,
+                _SUPABASE_JWK,
+                algorithms=["ES256"],
+                audience="authenticated",
+            )
+            return payload
+        except JWTError as exc:
+            raise HTTPException(status_code=401, detail=f"Invalid token: {exc}")
+    # Dev fallback: accept static API_SECRET bearer token
+    if _API_SECRET and token == _API_SECRET:
+        return {"sub": "dev"}
+    raise HTTPException(status_code=500, detail="Server misconfiguration: no auth secret set.")
+
+
+# ── ChromaDB + LLM ─────────────────────────────────────────────────────────────
 vector_db = Chroma(
-    persist_directory="./vcaa_json_index", 
-    embedding_function=OpenAIEmbeddings()
+    persist_directory="./vcaa_json_index",
+    embedding_function=OpenAIEmbeddings(),
+    # TODO: upgrade embedding model to text-embedding-3-small on next re-index.
+    # Requires rebuilding vcaa_json_index — do NOT change the model mid-index
+    # as the query and stored embeddings must use the same model.
 )
 
-# Lower temperature (0.2) keeps the AI strictly on the "Master Pedagogue" path
-llm = ChatOpenAI(model_name="gpt-4o-mini", temperature=0.2)
+llm = ChatOpenAI(model_name="gpt-4o-mini", temperature=0.2, max_tokens=800)
+llm_query_gen = ChatOpenAI(model_name="gpt-4o-mini", temperature=0.2, max_tokens=150)
 
-# 3. Memory Store for Session History
-history_store = {}
+# ── OpenAI client for Moderation API ──────────────────────────────────────────
+_openai_client = OpenAIClient()
 
-def get_session_history(session_id: str):
-    if session_id not in history_store:
-        history_store[session_id] = ChatMessageHistory()
-    return history_store[session_id]
+# ── Session history store ──────────────────────────────────────────────────────
+# Uses Redis when REDIS_URL is set (production / staging), falls back to an
+# in-memory LRU-capped OrderedDict for local dev without Redis configured.
+MAX_SESSIONS = 500
+MAX_TURNS = 5
+SESSION_TTL_SECONDS = 30 * 24 * 60 * 60  # 30 days, matches frontend localStorage TTL
 
-# 4. Data Models
+_REDIS_URL = os.environ.get("REDIS_URL", "")
+history_store: OrderedDict = OrderedDict()  # used only when Redis is unavailable
+
+
+def get_session_history(session_id: str) -> ChatMessageHistory:
+    if _REDIS_URL:
+        return RedisChatMessageHistory(
+            session_id=session_id,
+            url=_REDIS_URL,
+            ttl=SESSION_TTL_SECONDS,
+        )
+    # In-memory fallback: LRU-evict oldest session when cap is reached
+    if session_id in history_store:
+        history_store.move_to_end(session_id)
+        return history_store[session_id]
+    history = ChatMessageHistory()
+    history_store[session_id] = history
+    if len(history_store) > MAX_SESSIONS:
+        history_store.popitem(last=False)
+    return history
+
+
+# ── RAG settings ───────────────────────────────────────────────────────────────
+_encoder = tiktoken.get_encoding("cl100k_base")
+RAG_TOKEN_BUDGET = 3000
+RAG_RELEVANCE_THRESHOLD = 0.70
+
+# ── Server-side safety patterns — mirrors src/utils/safety.ts ─────────────────
+_SERIOUS_RE = re.compile(
+    r'\b(kill|hurt|harm)\s*(my|him|her|them)?self\b'
+    r'|suicid(e|al)\b'
+    r'|self[- ]?harm\b'
+    r'|want to die\b'
+    r'|wish I (was|were) dead\b'
+    r'|cut (myself|my wrists?)\b'
+    r'|\b(sexually|rape|molest)\b'
+    r'|\bgrooming\b',
+    re.IGNORECASE,
+)
+_CRISIS_RE = re.compile(
+    r'\b(nobody|no[- ]?one) cares?\b'
+    r'|hate my(self| life)\b'
+    r"|I('m| am) being (bullied|abused|hurt)\b"
+    r'|I feel (hopeless|worthless|alone|scared)\b'
+    r"|\b(can't|cannot) (cope|go on|take it)\b",
+    re.IGNORECASE,
+)
+
+_SERIOUS_RESPONSE = (
+    "I can see you're going through something very difficult right now. "
+    "Please reach out for help immediately:\n\n"
+    "🆘 **If you are in immediate danger, call 000**\n\n"
+    "- **Kids Helpline**: 1800 55 1800 (free, 24/7)\n"
+    "- **Lifeline**: 13 11 14 (free, 24/7)\n"
+    "- **Beyond Blue**: 1300 22 4636\n\n"
+    "Please talk to a trusted adult — a parent, teacher, or school counsellor — as soon as you can. "
+    "You deserve real support. 💙"
+)
+_CRISIS_RESPONSE = (
+    "It sounds like things might be tough right now, and I want you to know that matters.\n\n"
+    "Please talk to someone who can really help:\n"
+    "- **Kids Helpline**: 1800 55 1800 (free, 24/7, for people under 25)\n"
+    "- **Lifeline**: 13 11 14 (free, 24/7)\n"
+    "- **Beyond Blue**: 1300 22 4636\n\n"
+    "You can also talk to a parent, teacher, school counsellor, or another trusted adult. 💙"
+)
+
+# ── Profile validation / prompt-injection defence ──────────────────────────────
+_VALID_TONES = {"Warm", "Balanced", "Formal"}
+_VALID_GUIDANCE = {"Socratic", "Mixed", "Full Explanations"}
+_NAME_RE = re.compile(r"^[A-Za-z\s'\-]{1,50}$")
+
+
+def sanitise_profile(profile: dict) -> dict:
+    """Validate and sanitise student_profile fields before prompt interpolation."""
+    profile = dict(profile)
+    name = str(profile.get("student_name", "")).strip()
+    profile["student_name"] = name[:50] if name and _NAME_RE.match(name) else "Student"
+    if profile.get("engagement_tone") not in _VALID_TONES:
+        raise HTTPException(status_code=400, detail="Invalid engagement_tone value.")
+    if profile.get("guidance_preference") not in _VALID_GUIDANCE:
+        raise HTTPException(status_code=400, detail="Invalid guidance_preference value.")
+    return profile
+
+
+# ── Dev logging helpers (will move to Supabase CONTENT_FLAGS / consents tables) ─
+_FLAG_LOG = "flagged_responses.jsonl"
+_CONSENT_LOG = "consents.jsonl"
+_TTS_LOG = "tts_usage.jsonl"
+
+
+def _append_log(path: str, entry: dict) -> None:
+    try:
+        with open(path, "a", encoding="utf-8") as f:
+            f.write(json.dumps(entry) + "\n")
+    except Exception as exc:
+        print(f"[log] failed to write {path}: {exc}")
+
+
+def log_flagged(session_id: str, categories: dict) -> None:
+    # Note: flagged message content is NOT logged — only metadata.
+    _append_log(_FLAG_LOG, {
+        "timestamp": datetime.datetime.utcnow().isoformat() + "Z",
+        "session_id": session_id,
+        "categories": categories,
+    })
+
+
+def log_consent(
+    parent_email: str,
+    ip: str,
+    consent_version: str = "1.0",
+    parent_name: Optional[str] = None,
+    parent_mobile: Optional[str] = None,
+) -> None:
+    # Raw PII is never stored — only SHA-256 hashes for auditability.
+    entry: dict = {
+        "timestamp": datetime.datetime.utcnow().isoformat() + "Z",
+        "consent_version": consent_version,
+        "ip": ip,
+        "parent_email_sha256": hashlib.sha256(parent_email.lower().strip().encode()).hexdigest(),
+    }
+    if parent_name:
+        entry["parent_name_sha256"] = hashlib.sha256(parent_name.lower().strip().encode()).hexdigest()
+    if parent_mobile:
+        entry["parent_mobile_sha256"] = hashlib.sha256(parent_mobile.strip().encode()).hexdigest()
+    _append_log(_CONSENT_LOG, entry)
+
+
+def log_tts(session_id: Optional[str], char_count: int) -> None:
+    # Text content is NOT logged — only character count for cost tracking.
+    _append_log(_TTS_LOG, {
+        "timestamp": datetime.datetime.utcnow().isoformat() + "Z",
+        "session_id": session_id or "unknown",
+        "char_count": char_count,
+    })
+
+
+# ── Data models ────────────────────────────────────────────────────────────────
 class SubjectPerformance(BaseModel):
     grade: Optional[str] = None
     struggles_significantly: bool = False
     low_confidence: bool = False
     receives_extension: bool = False
     highly_motivated: bool = False
+
 
 class IntakeRequest(BaseModel):
     student_name: str = ""
@@ -71,6 +269,12 @@ class IntakeRequest(BaseModel):
     guidance_preference: str = "Mixed"
     engagement_tone: str = "Warm"
     focus_limit_minutes: int = 20
+    tts_enabled: bool = True
+    parent_name: Optional[str] = None
+    parent_email: Optional[str] = None
+    parent_mobile: Optional[str] = None
+    consent_given: bool = False
+
 
 class ChatRequest(BaseModel):
     session_id: str
@@ -80,111 +284,169 @@ class ChatRequest(BaseModel):
     is_naplan_mode: bool = False
     student_profile: Optional[Dict[str, Any]] = None
 
+
 class TTSRequest(BaseModel):
     text: str
+    session_id: Optional[str] = None
 
-# 5. Intake Endpoint
+
+# ── Endpoints ──────────────────────────────────────────────────────────────────
+
 @app.post("/intake")
-async def intake(request: IntakeRequest):
-    """
-    Classifies the questionnaire and returns a complete StudentProfile.
-    No DB write — caller stores the profile in localStorage.
-    """
-    raw = request.model_dump()
-    # Convert nested SubjectPerformance objects to plain dicts
+@limiter.limit("10/minute")
+async def intake(request: Request, body: IntakeRequest, _=Depends(verify_auth)):
+    if not body.consent_given:
+        raise HTTPException(status_code=400, detail="Parental consent is required.")
+    if body.parent_email:
+        client_ip = request.client.host if request.client else "unknown"
+        log_consent(
+            body.parent_email,
+            client_ip,
+            parent_name=body.parent_name,
+            parent_mobile=body.parent_mobile,
+        )
+    raw = body.model_dump()
     raw["subject_performance"] = {
-        subj: perf.model_dump() for subj, perf in request.subject_performance.items()
+        subj: perf.model_dump() for subj, perf in body.subject_performance.items()
     }
     profile = derive_profile_from_questionnaire(raw)
     return profile
 
-# 6. Root Health Check
+
 @app.get("/")
 async def root():
     return {
         "status": "Voxii Master Expert Backend Online",
         "tier": "Master (Multi-Query + CoT + Strict LaTeX + Imagery)",
-        "database_synced": os.path.exists("./vcaa_json_index")
+        "database_synced": os.path.exists("./vcaa_json_index"),
     }
 
+
 _TTS_STRIP = re.compile(
-    r'\[Graph:[^\]]*\]|\[Diagram:[^\]]*\]|\[Image of [^\]]*\]'   # widget tags
-    r'|\$\$[\s\S]+?\$\$|\$[^$\n]+\$'                             # LaTeX
-    r'|```[\s\S]+?```'                                            # code blocks
-    r'|[*_#`]',                                                   # markdown syntax
+    r'\[Graph:[^\]]*\]|\[Diagram:[^\]]*\]|\[Image of [^\]]*\]'
+    r'|\$\$[\s\S]+?\$\$|\$[^$\n]+\$'
+    r'|```[\s\S]+?```'
+    r'|[*_#`]',
     re.IGNORECASE,
 )
 
-# 7. TTS Endpoint
+
 @app.post("/tts")
-async def tts(request: TTSRequest):
-    clean = _TTS_STRIP.sub(' ', request.text)
+@limiter.limit("10/minute")
+async def tts(request: Request, body: TTSRequest, _=Depends(verify_auth)):
+    clean = _TTS_STRIP.sub(' ', body.text)
     clean = re.sub(r'\s+', ' ', clean).strip()[:4000]
-    client = texttospeech.TextToSpeechClient()
+    log_tts(body.session_id, len(clean))
+    tts_client = texttospeech.TextToSpeechClient()
     synthesis_input = texttospeech.SynthesisInput(text=clean)
-    voice = texttospeech.VoiceSelectionParams(
-        language_code="en-AU",
-        name="en-AU-Standard-A",
-    )
+    voice = texttospeech.VoiceSelectionParams(language_code="en-AU", name="en-AU-Standard-A")
     audio_config = texttospeech.AudioConfig(
         audio_encoding=texttospeech.AudioEncoding.MP3,
         speaking_rate=0.95,
     )
-    tts_response = client.synthesize_speech(
+    tts_response = tts_client.synthesize_speech(
         input=synthesis_input, voice=voice, audio_config=audio_config
     )
     return Response(content=tts_response.audio_content, media_type="audio/mpeg")
 
-# 8. The Expert Chat Endpoint
+
 @app.post("/chat")
-async def chat(request: ChatRequest):
-    history = get_session_history(request.session_id)
+@limiter.limit("20/minute")
+async def chat(request: Request, body: ChatRequest, _=Depends(verify_auth)):
+    # ── Server-side safety gate (authoritative — cannot be bypassed by clients) ──
+    if _SERIOUS_RE.search(body.message):
+        return {"response": _SERIOUS_RESPONSE}
+    if _CRISIS_RE.search(body.message):
+        return {"response": _CRISIS_RESPONSE}
 
-    # --- SUBJECT & YEAR NORMALIZATION ---
-    sub_map = {"maths": "Mathematics", "mathematics": "Mathematics", "science": "Science", "english": "English"}
-    clean_sub = sub_map.get(request.subject.strip().lower(), request.subject.strip().capitalize())
-    clean_year = request.year_level.strip().title()
-    
-    # --- STEP 1: MULTI-QUERY RETRIEVAL ---
-    # Turns 1 vague question into 3 high-quality curriculum searches
-    search_gen_prompt = f"Convert this student query into 3 distinct, technical search terms for a VCAA curriculum database: {request.message}"
-    queries_response = llm.invoke(search_gen_prompt)
-    search_queries = queries_response.content.split("\n")
-    
-    all_docs = []
+    history = get_session_history(body.session_id)
+
+    # ── Backend MAX_TURNS enforcement ──────────────────────────────────────────
+    if len(history.messages) >= MAX_TURNS * 2:
+        return {"response": "We've reached the end of our session — well done! Please start a new chat to keep going. 😊"}
+
+    # ── Subject & year normalisation ───────────────────────────────────────────
+    sub_map = {
+        "maths": "Mathematics", "mathematics": "Mathematics",
+        "science": "Science", "english": "English",
+    }
+    clean_sub = sub_map.get(body.subject.strip().lower(), body.subject.strip().capitalize())
+    clean_year = body.year_level.strip().title()
+
+    # ── Multi-query retrieval — message wrapped in delimiters to reduce prompt injection ──
+    search_gen_prompt = (
+        "Convert the student query below into 3 distinct, technical search terms "
+        "for a VCAA curriculum database.\nStudent query: ###\n"
+        f"{body.message[:500]}\n###\nReturn only the search terms, one per line."
+    )
+    queries_response = llm_query_gen.invoke(search_gen_prompt)
+    search_queries = [q.strip() for q in queries_response.content.split("\n") if q.strip()]
+
+    all_docs: list = []
     for q in search_queries:
-        docs = vector_db.similarity_search(
-            q, k=3, 
-            filter={"$and": [{"year_level": clean_year}, {"subject": clean_sub}]}
-        )
-        all_docs.extend(docs)
-    
-    # Deduplicate retrieved documents
-    unique_docs = {doc.page_content for doc in all_docs}
-    context_text = "\n\n".join(unique_docs)
+        try:
+            scored = vector_db.similarity_search_with_relevance_scores(
+                q, k=3,
+                filter={"$and": [{"year_level": clean_year}, {"subject": clean_sub}]},
+            )
+        except Exception:
+            # Metadata filter may fail if index has no matching docs — fall back unfiltered
+            scored = vector_db.similarity_search_with_relevance_scores(q, k=3)
+        all_docs.extend((doc, score) for doc, score in scored if score >= RAG_RELEVANCE_THRESHOLD)
 
-    # --- STEP 2: BUILD DYNAMIC SYSTEM PROMPT AND CALL LLM ---
-    if request.student_profile:
+    # ── Dedup by content + enforce token budget ────────────────────────────────
+    seen: set = set()
+    budget = RAG_TOKEN_BUDGET
+    chunks: list = []
+    for doc, _score in sorted(all_docs, key=lambda x: x[1], reverse=True):
+        if doc.page_content in seen:
+            continue
+        seen.add(doc.page_content)
+        n_tokens = len(_encoder.encode(doc.page_content))
+        if budget - n_tokens < 0:
+            break
+        chunks.append(doc.page_content)
+        budget -= n_tokens
+    context_text = "\n\n".join(chunks)
+
+    # ── System prompt assembly ─────────────────────────────────────────────────
+    if body.student_profile:
+        safe_profile = sanitise_profile(body.student_profile)
         system_prompt = generate_personalized_prompt(
-            request.subject,
-            request.year_level,
-            request.student_profile,
-            is_naplan_mode=request.is_naplan_mode,
+            body.subject, body.year_level, safe_profile, is_naplan_mode=body.is_naplan_mode,
         )
     else:
-        system_prompt = build_system_prompt(request.subject, request.year_level, request.is_naplan_mode)
-    system_prompt += f"\n\nEXPERT CURRICULUM GUIDE (VCAA-specific content for this session):\n{context_text}"
+        system_prompt = build_system_prompt(body.subject, body.year_level, body.is_naplan_mode)
 
-    messages = [{"role": "system", "content": system_prompt}]
+    if context_text:
+        system_prompt += f"\n\nEXPERT CURRICULUM GUIDE (VCAA-specific content for this session):\n{context_text}"
+
+    messages_payload = [{"role": "system", "content": system_prompt}]
     for msg in history.messages:
-        role = "assistant" if msg.type == "ai" else "user"
-        messages.append({"role": role, "content": msg.content})
-    messages.append({"role": "user", "content": request.message})
+        messages_payload.append({
+            "role": "assistant" if msg.type == "ai" else "user",
+            "content": msg.content,
+        })
+    messages_payload.append({"role": "user", "content": body.message})
 
-    result = llm.invoke(messages)
+    result = llm.invoke(messages_payload)
     response = result.content
 
-    history.add_user_message(request.message)
-    history.add_ai_message(response)
+    # ── Output moderation ──────────────────────────────────────────────────────
+    try:
+        mod = _openai_client.moderations.create(input=response)
+        if mod.results[0].flagged:
+            categories = {k: v for k, v in mod.results[0].categories.model_dump().items() if v}
+            log_flagged(body.session_id, categories)
+            return {
+                "response": (
+                    "I wasn't able to give a great response to that — let's try a different angle. "
+                    "What else can I help you with?"
+                )
+            }
+    except Exception as exc:
+        print(f"[moderation] API call failed: {exc} — allowing response through")
 
+    history.add_user_message(body.message)
+    history.add_ai_message(response)
     return {"response": response}

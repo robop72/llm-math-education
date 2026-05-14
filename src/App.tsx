@@ -4,19 +4,37 @@ import Sidebar from './components/Sidebar';
 import ParentPin from './components/ParentPin';
 import ParentDashboard from './components/ParentDashboard';
 import IntakeForm from './components/IntakeForm';
+import AuthScreen from './components/AuthScreen';
 import StreakDisplay from './components/StreakDisplay';
 import MilestoneModal from './components/MilestoneModal';
 import { useTheme } from './hooks/useTheme';
 import { useChat } from './hooks/useChat';
 import { useStudentProfile } from './hooks/useStudentProfile';
 import { useStreak } from './hooks/useStreak';
+import { useAuth } from './hooks/useAuth';
 import { YearLevel, Subject, ALLOWED_YEAR_LEVELS, ALLOWED_SUBJECTS } from './lib/curriculumConfig';
 
 type View = 'chat' | 'parent-pin' | 'parent-dashboard' | 'intake';
 
 export default function App() {
+  const { session, loading: authLoading, supabaseEnabled, signOut } = useAuth();
   const { dark, toggle } = useTheme();
   const { data: streakData, milestone, recordMessage, dismissMilestone } = useStreak();
+
+  // Supabase auth gate
+  if (supabaseEnabled && authLoading) {
+    return (
+      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
+        <svg className="w-8 h-8 animate-spin text-blue-500" fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+        </svg>
+      </div>
+    );
+  }
+  if (supabaseEnabled && !session) return <AuthScreen />;
+
+  const accessToken = session?.access_token;
   // Start open on desktop, closed on mobile
   const [sidebarOpen, setSidebarOpen] = useState(() =>
     typeof window !== 'undefined' ? window.innerWidth >= 768 : true
@@ -42,10 +60,10 @@ export default function App() {
   }, [profile]);
 
   const {
-    sessions, currentId, messages, isLoading,
+    sessions, currentId, messages, isLoading, apiSessionId,
     sendMessage: sendMessageRaw, startNewChat, loadSession, deleteSession,
     togglePin, renameSession, cancelMessage,
-  } = useChat({ yearLevel, subject, isNaplanMode, studentProfile: profile });
+  } = useChat({ yearLevel, subject, isNaplanMode, studentProfile: profile, accessToken });
 
   const sendMessage = useCallback((msg: string) => {
     recordMessage();
@@ -64,7 +82,7 @@ export default function App() {
   }
 
   if (view === 'parent-pin') return <ParentPin onSuccess={() => setView('parent-dashboard')} onBack={() => setView('chat')} />;
-  if (view === 'parent-dashboard') return <ParentDashboard onBack={() => setView('chat')} />;
+  if (view === 'parent-dashboard') return <ParentDashboard onBack={() => setView('chat')} onSignOut={supabaseEnabled ? signOut : undefined} />;
   if (view === 'intake') return (
     <IntakeForm
       onComplete={p => { saveProfile(p); setView('chat'); }}
@@ -189,6 +207,9 @@ export default function App() {
             sendMessage={sendMessage}
             cancelMessage={cancelMessage}
             studentName={profile?.student_name || undefined}
+            ttsEnabled={profile?.tts_enabled !== false}
+            apiSessionId={apiSessionId}
+            accessToken={accessToken}
           />
         </div>
       </div>

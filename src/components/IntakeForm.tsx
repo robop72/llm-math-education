@@ -5,7 +5,6 @@ import {
 } from '../lib/studentProfile';
 import { ALLOWED_SUBJECTS } from '../lib/curriculumConfig';
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://voxii-tutor-backend-919882895306.australia-southeast1.run.app';
 
 const STATES = ['ACT', 'NSW', 'NT', 'QLD', 'SA', 'TAS', 'VIC', 'WA'];
 const GOALS = ['Build confidence', 'Improve grades', 'Exam preparation', 'NAPLAN preparation', 'Extension & enrichment', 'Homework help', 'Catch up on missed work'];
@@ -43,6 +42,7 @@ const DEFAULT_DRAFT: IntakeQuestionnaire = {
   guidance_preference: 'Mixed',
   engagement_tone: 'Warm',
   focus_limit_minutes: 20,
+  tts_enabled: true,
 };
 
 interface Props {
@@ -82,6 +82,163 @@ function Toggle({ value, onChange, label }: { value: boolean; onChange: (v: bool
         <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${value ? 'translate-x-4' : 'translate-x-0'}`} />
       </span>
     </button>
+  );
+}
+
+// ── Step 0: Parental consent ──────────────────────────────────────────────────
+
+interface Step0Props {
+  parentName: string;
+  setParentName: (v: string) => void;
+  parentEmail: string;
+  setParentEmail: (v: string) => void;
+  parentMobile: string;
+  setParentMobile: (v: string) => void;
+  parentPin: string;
+  setParentPin: (v: string) => void;
+  consentChecked: boolean;
+  setConsentChecked: (v: boolean) => void;
+  nameTouched: boolean;
+  setNameTouched: (v: boolean) => void;
+  emailTouched: boolean;
+  setEmailTouched: (v: boolean) => void;
+  pinTouched: boolean;
+  setPinTouched: (v: boolean) => void;
+}
+
+function Step0({
+  parentName, setParentName, parentEmail, setParentEmail,
+  parentMobile, setParentMobile, parentPin, setParentPin,
+  consentChecked, setConsentChecked,
+  nameTouched, setNameTouched,
+  emailTouched, setEmailTouched, pinTouched, setPinTouched,
+}: Step0Props) {
+  const nameValid = parentName.trim().length >= 2;
+  const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(parentEmail);
+  const pinValid = /^\d{4,6}$/.test(parentPin);
+
+  return (
+    <div className="space-y-5">
+      <div className="rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 p-4">
+        <h3 className="text-sm font-semibold text-blue-800 dark:text-blue-300 mb-2">What data is collected</h3>
+        <ul className="text-xs text-gray-600 dark:text-gray-400 space-y-1 list-disc list-inside">
+          <li>Your child's first name (optional), year level, and subjects</li>
+          <li>Learning preferences (tone, guidance style, focus time)</li>
+          <li>Your name and email — stored as one-way hashes for consent records only</li>
+        </ul>
+        <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+          Chat history is stored on this device only and automatically deleted after 30 days.
+        </p>
+        <a href="#" className="text-xs text-blue-600 dark:text-blue-400 underline mt-1 inline-block">
+          Read our full privacy policy
+        </a>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+          Your full name <span className="text-red-400">*</span>
+        </label>
+        <input
+          type="text"
+          value={parentName}
+          onChange={e => setParentName(e.target.value)}
+          onBlur={() => setNameTouched(true)}
+          placeholder="e.g. Jane Smith"
+          className={`w-full px-3 py-2 rounded-xl border text-sm outline-none transition-colors bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 ${
+            nameTouched && !nameValid
+              ? 'border-red-400 focus:border-red-500'
+              : 'border-gray-300 dark:border-gray-600 focus:border-blue-400'
+          }`}
+        />
+        {nameTouched && !nameValid && (
+          <p className="text-xs text-red-400 mt-1">Please enter your full name.</p>
+        )}
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+          Parent or guardian email <span className="text-red-400">*</span>
+        </label>
+        <input
+          type="email"
+          value={parentEmail}
+          onChange={e => setParentEmail(e.target.value)}
+          onBlur={() => setEmailTouched(true)}
+          placeholder="you@example.com"
+          className={`w-full px-3 py-2 rounded-xl border text-sm outline-none transition-colors bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 ${
+            emailTouched && !emailValid
+              ? 'border-red-400 focus:border-red-500'
+              : 'border-gray-300 dark:border-gray-600 focus:border-blue-400'
+          }`}
+        />
+        {emailTouched && !emailValid && (
+          <p className="text-xs text-red-400 mt-1">Please enter a valid email address.</p>
+        )}
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+          Mobile number <span className="text-gray-400 font-normal">(optional)</span>
+        </label>
+        <input
+          type="tel"
+          value={parentMobile}
+          onChange={e => setParentMobile(e.target.value)}
+          placeholder="e.g. 0412 345 678"
+          className="w-full px-3 py-2 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm outline-none focus:border-blue-400 transition-colors"
+        />
+        <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Used only for account recovery. Never shared.</p>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+          Set a parent portal PIN <span className="text-red-400">*</span>
+        </label>
+        <input
+          type="password"
+          inputMode="numeric"
+          maxLength={6}
+          value={parentPin}
+          onChange={e => setParentPin(e.target.value.replace(/\D/g, '').slice(0, 6))}
+          onBlur={() => setPinTouched(true)}
+          placeholder="4–6 digits"
+          className={`w-full px-3 py-2 rounded-xl border text-sm outline-none transition-colors bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 ${
+            pinTouched && !pinValid
+              ? 'border-red-400 focus:border-red-500'
+              : 'border-gray-300 dark:border-gray-600 focus:border-blue-400'
+          }`}
+        />
+        {pinTouched && !pinValid && (
+          <p className="text-xs text-red-400 mt-1">PIN must be 4–6 digits.</p>
+        )}
+        <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+          This PIN protects the parent dashboard on this device.
+        </p>
+      </div>
+
+      <div className="flex items-start gap-3">
+        <button
+          type="button"
+          onClick={() => setConsentChecked(!consentChecked)}
+          className={`mt-0.5 flex-shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
+            consentChecked
+              ? 'bg-blue-500 border-blue-500'
+              : 'border-gray-400 dark:border-gray-500 bg-white dark:bg-gray-800'
+          }`}
+        >
+          {consentChecked && (
+            <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+            </svg>
+          )}
+        </button>
+        <p className="text-sm text-gray-700 dark:text-gray-300">
+          I am the parent or guardian of the student who will use this app, and I consent to the{' '}
+          <a href="#" className="text-blue-600 dark:text-blue-400 underline">privacy policy</a>.
+          <span className="text-red-400"> *</span>
+        </p>
+      </div>
+    </div>
   );
 }
 
@@ -153,7 +310,6 @@ function Step2({ draft, onChange }: { draft: IntakeQuestionnaire; onChange: (p: 
     const selected = draft.selected_subjects.includes(s)
       ? draft.selected_subjects.filter(x => x !== s)
       : [...draft.selected_subjects, s];
-    // Remove performance data for deselected subjects
     const perf = { ...draft.subject_performance };
     if (!selected.includes(s)) delete perf[s];
     else if (!perf[s]) perf[s] = EMPTY_PERF();
@@ -221,7 +377,6 @@ function Step3({ draft, onChange }: { draft: IntakeQuestionnaire; onChange: (p: 
               <span>{subject === 'Maths' ? '📐' : subject === 'English' ? '📖' : '🔬'}</span>
               {subject}
             </h3>
-
             <div className="mb-3">
               <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">Current grade</p>
               <div className="flex gap-2 flex-wrap">
@@ -232,7 +387,6 @@ function Step3({ draft, onChange }: { draft: IntakeQuestionnaire; onChange: (p: 
                 ))}
               </div>
             </div>
-
             <div className="divide-y divide-gray-200 dark:divide-gray-700">
               <Toggle value={perf.struggles_significantly} onChange={v => updatePerf(subject, { struggles_significantly: v })} label="Struggles significantly with this subject" />
               <Toggle value={perf.low_confidence} onChange={v => updatePerf(subject, { low_confidence: v })} label="Low confidence in this subject" />
@@ -313,16 +467,42 @@ function Step4({ draft, onChange }: { draft: IntakeQuestionnaire; onChange: (p: 
           ))}
         </div>
       </div>
+
+      <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+        <Toggle
+          value={draft.tts_enabled}
+          onChange={v => onChange({ tts_enabled: v })}
+          label="Enable read-aloud (accessibility feature)"
+        />
+        <p className="text-xs text-gray-400 dark:text-gray-500 mt-1 pl-0">
+          Allows Voxii to read responses aloud using text-to-speech.
+        </p>
+      </div>
     </div>
   );
 }
 
 // ── Main IntakeForm ───────────────────────────────────────────────────────────
 
-const STEP_TITLES = ['Student details', 'Subjects', 'Performance', 'Preferences'];
+// Steps: 0 = consent, 1 = details, 2 = subjects, 3 = performance, 4 = preferences
+// When editing an existing profile, Step 0 is skipped (consent already given).
+const STEP_TITLES = ['Parental consent', 'Student details', 'Subjects', 'Performance', 'Preferences'];
+const TOTAL_STEPS = 5;
 
 export default function IntakeForm({ onComplete, onBack, onClear, initialProfile }: Props) {
-  const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
+  const isEditing = !!initialProfile;
+  const [step, setStep] = useState<number>(isEditing ? 1 : 0);
+
+  // Consent fields (Step 0 only, not persisted to profile)
+  const [parentName, setParentName] = useState('');
+  const [parentEmail, setParentEmail] = useState('');
+  const [parentMobile, setParentMobile] = useState('');
+  const [parentPin, setParentPin] = useState('');
+  const [consentChecked, setConsentChecked] = useState(false);
+  const [nameTouched, setNameTouched] = useState(false);
+  const [emailTouched, setEmailTouched] = useState(false);
+  const [pinTouched, setPinTouched] = useState(false);
+
   const [draft, setDraft] = useState<IntakeQuestionnaire>(() => {
     if (initialProfile) {
       return {
@@ -337,6 +517,7 @@ export default function IntakeForm({ onComplete, onBack, onClear, initialProfile
         guidance_preference: initialProfile.guidance_preference,
         engagement_tone: initialProfile.engagement_tone,
         focus_limit_minutes: initialProfile.focus_limit_minutes,
+        tts_enabled: initialProfile.tts_enabled ?? true,
       };
     }
     return { ...DEFAULT_DRAFT };
@@ -347,24 +528,57 @@ export default function IntakeForm({ onComplete, onBack, onClear, initialProfile
     setDraft(prev => ({ ...prev, ...p }));
   }
 
-  function canAdvance() {
+  function canAdvance(): boolean {
+    if (step === 0) {
+      const nameValid = parentName.trim().length >= 2;
+      const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(parentEmail);
+      const pinValid = /^\d{4,6}$/.test(parentPin);
+      return nameValid && emailValid && pinValid && consentChecked;
+    }
     if (step === 2 && draft.selected_subjects.length === 0) return false;
     return true;
   }
 
+  function handleNext() {
+    if (step === 0) {
+      setNameTouched(true);
+      setEmailTouched(true);
+      setPinTouched(true);
+    }
+    if (!canAdvance()) return;
+    setStep(s => s + 1);
+  }
+
+  function handleBack() {
+    if (step === (isEditing ? 1 : 0)) {
+      onBack();
+    } else {
+      setStep(s => s - 1);
+    }
+  }
+
   async function handleSubmit() {
     setSubmitting(true);
+    if (parentPin) {
+      localStorage.setItem('voxii-parent-pin', parentPin);
+    }
     try {
-      const res = await fetch(`${API_URL}/intake`, {
+      const res = await fetch('/api/intake', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(draft),
+        body: JSON.stringify({
+          ...draft,
+          parent_name: parentName.trim() || undefined,
+          parent_email: parentEmail || undefined,
+          parent_mobile: parentMobile.trim() || undefined,
+          consent_given: isEditing ? true : consentChecked,
+        }),
       });
       if (!res.ok) throw new Error('API error');
       const profile: StudentProfile = await res.json();
       onComplete(profile);
     } catch {
-      // Fallback: classify client-side
+      // Fallback: classify client-side if API is unreachable
       const profile = deriveProfileClientSide(draft);
       onComplete(profile);
     } finally {
@@ -372,7 +586,10 @@ export default function IntakeForm({ onComplete, onBack, onClear, initialProfile
     }
   }
 
-  const progress = (step / 4) * 100;
+  const isLastStep = step === 4;
+  const isFirstStep = step === (isEditing ? 1 : 0);
+  // Progress from 0% (step 0) to 100% (step 4)
+  const progress = (step / (TOTAL_STEPS - 1)) * 100;
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex flex-col items-center justify-start px-4 py-8">
@@ -399,8 +616,8 @@ export default function IntakeForm({ onComplete, onBack, onClear, initialProfile
         {/* Progress bar */}
         <div className="mb-6">
           <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mb-1.5">
-            <span className="font-medium text-gray-700 dark:text-gray-300">{STEP_TITLES[step - 1]}</span>
-            <span>Step {step} of 4</span>
+            <span className="font-medium text-gray-700 dark:text-gray-300">{STEP_TITLES[step]}</span>
+            <span>Step {step + 1} of {TOTAL_STEPS}</span>
           </div>
           <div className="h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
             <div
@@ -412,6 +629,18 @@ export default function IntakeForm({ onComplete, onBack, onClear, initialProfile
 
         {/* Card */}
         <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm p-5 sm:p-6">
+          {step === 0 && (
+            <Step0
+              parentName={parentName} setParentName={setParentName}
+              parentEmail={parentEmail} setParentEmail={setParentEmail}
+              parentMobile={parentMobile} setParentMobile={setParentMobile}
+              parentPin={parentPin} setParentPin={setParentPin}
+              consentChecked={consentChecked} setConsentChecked={setConsentChecked}
+              nameTouched={nameTouched} setNameTouched={setNameTouched}
+              emailTouched={emailTouched} setEmailTouched={setEmailTouched}
+              pinTouched={pinTouched} setPinTouched={setPinTouched}
+            />
+          )}
           {step === 1 && <Step1 draft={draft} onChange={patch} />}
           {step === 2 && <Step2 draft={draft} onChange={patch} />}
           {step === 3 && <Step3 draft={draft} onChange={patch} />}
@@ -422,16 +651,16 @@ export default function IntakeForm({ onComplete, onBack, onClear, initialProfile
         <div className="flex gap-3 mt-4">
           <button
             type="button"
-            onClick={step === 1 ? onBack : () => setStep(s => (s - 1) as 1 | 2 | 3 | 4)}
+            onClick={handleBack}
             className="flex-1 py-2.5 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
           >
-            {step === 1 ? 'Cancel' : 'Back'}
+            {isFirstStep ? 'Cancel' : 'Back'}
           </button>
 
-          {step < 4 ? (
+          {!isLastStep ? (
             <button
               type="button"
-              onClick={() => canAdvance() && setStep(s => (s + 1) as 1 | 2 | 3 | 4)}
+              onClick={handleNext}
               disabled={!canAdvance()}
               className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white bg-blue-500 hover:bg-blue-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
