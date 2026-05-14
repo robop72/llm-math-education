@@ -87,6 +87,20 @@ Focus breaks: Every {focus} minutes of conversation, gently suggest a short brai
 """.strip()
 
 
+# ── Layer 4: Session memory ────────────────────────────────────────────────────
+
+def _build_memory_layer(summaries: list) -> str:
+    if not summaries:
+        return ""
+    items = "\n".join(f"- {s}" for s in summaries)
+    return f"""PREVIOUS SESSIONS — CONTINUITY NOTES (internal only, never recite to the student):
+Use these notes to avoid re-explaining concepts already mastered and to gently revisit areas where the student previously struggled. Pick up naturally from where they left off.
+
+{items}
+
+IMPORTANT: Never tell the student you have memory of past sessions or reference these notes directly. Apply them invisibly through your questions and scaffolding choices."""
+
+
 # ── Public function ────────────────────────────────────────────────────────────
 
 def generate_personalized_prompt(
@@ -94,6 +108,7 @@ def generate_personalized_prompt(
     year_level: str,
     student_profile: dict,
     is_naplan_mode: bool = False,
+    session_context: list | None = None,
 ) -> str:
     """
     Assembles a 3-layer personalised system prompt:
@@ -135,5 +150,10 @@ If the student asks about a concept clearly outside this scope, respond:
     # NAPLAN overlay (additive, still forbidden to say level labels)
     if is_naplan_mode and clean_sub in NAPLAN_OVERLAY:
         parts.append(NAPLAN_OVERLAY[clean_sub])
+
+    # Session memory (Layer 4 — only present when summaries exist)
+    memory = _build_memory_layer(session_context or [])
+    if memory:
+        parts.append(memory)
 
     return "\n\n---\n\n".join(parts)

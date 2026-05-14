@@ -13,6 +13,8 @@ import { useChat } from './hooks/useChat';
 import { useStudentProfile } from './hooks/useStudentProfile';
 import { useStreak } from './hooks/useStreak';
 import { useAuth } from './hooks/useAuth';
+import { useSessionSummaries } from './hooks/useSessionSummaries';
+import type { Message } from './hooks/useChat';
 import { YearLevel, Subject, ALLOWED_YEAR_LEVELS, ALLOWED_SUBJECTS } from './lib/curriculumConfig';
 
 type View = 'chat' | 'parent-pin' | 'parent-dashboard' | 'intake' | 'profile-picker';
@@ -35,6 +37,7 @@ export default function App() {
   } = useStudentProfile();
 
   const { data: streakData, milestone, recordMessage, dismissMilestone } = useStreak(activeProfileId);
+  const { getRecentForSubject, addSummary } = useSessionSummaries(activeProfileId);
 
   useEffect(() => {
     if (view === 'parent-pin' && sessionStorage.getItem('voxii-parent-auth') === 'true') {
@@ -50,6 +53,27 @@ export default function App() {
     }
   }, [profile]);
 
+  const handleSessionComplete = useCallback(async (sessionId: string, msgs: Message[], subj: string) => {
+    try {
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (session?.access_token) headers['Authorization'] = `Bearer ${session.access_token}`;
+      const res = await fetch('/api/summarise', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          session_id: sessionId,
+          messages: msgs.map(m => ({ role: m.role === 'tutor' ? 'tutor' : 'user', text: m.text })),
+          subject: subj,
+          year_level: `Year ${yearLevel}`,
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.summary) addSummary(sessionId, subj, data.summary);
+      }
+    } catch {}
+  }, [session?.access_token, yearLevel, addSummary]);
+
   const {
     sessions, currentId, messages, isLoading, apiSessionId,
     sendMessage: sendMessageRaw, startNewChat, loadSession, deleteSession,
@@ -59,6 +83,8 @@ export default function App() {
     studentProfile: profile,
     accessToken: session?.access_token,
     profileId: activeProfileId,
+    recentSummaries: getRecentForSubject(subject),
+    onSessionComplete: handleSessionComplete,
   });
 
   const sendMessage = useCallback((msg: string) => {

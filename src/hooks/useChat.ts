@@ -28,13 +28,15 @@ function makeSession(): ChatSession {
   return { id: uuidv4(), title: 'New Chat', messages: [], createdAt: Date.now() };
 }
 
-export function useChat({ yearLevel, subject, isNaplanMode = false, studentProfile = null, accessToken, profileId = null }: {
+export function useChat({ yearLevel, subject, isNaplanMode = false, studentProfile = null, accessToken, profileId = null, recentSummaries = [], onSessionComplete }: {
   yearLevel: number;
   subject: string;
   isNaplanMode?: boolean;
   studentProfile?: StudentProfile | null;
   accessToken?: string;
   profileId?: string | null;
+  recentSummaries?: string[];
+  onSessionComplete?: (sessionId: string, messages: Message[], subject: string) => void;
 }) {
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [currentId, setCurrentId] = useState('');
@@ -52,6 +54,9 @@ export function useChat({ yearLevel, subject, isNaplanMode = false, studentProfi
   const studentProfileRef = useRef(studentProfile);
   const initialised = useRef(false);
   const profileIdRef = useRef(profileId);
+  const sessionsRef = useRef<ChatSession[]>([]);
+  const recentSummariesRef = useRef(recentSummaries);
+  const onSessionCompleteRef = useRef(onSessionComplete);
 
   useEffect(() => { accessTokenRef.current = accessToken; }, [accessToken]);
   useEffect(() => { yearLevelRef.current = yearLevel; }, [yearLevel]);
@@ -59,6 +64,9 @@ export function useChat({ yearLevel, subject, isNaplanMode = false, studentProfi
   useEffect(() => { isNaplanModeRef.current = isNaplanMode; }, [isNaplanMode]);
   useEffect(() => { studentProfileRef.current = studentProfile; }, [studentProfile]);
   useEffect(() => { currentIdRef.current = currentId; }, [currentId]);
+  useEffect(() => { sessionsRef.current = sessions; }, [sessions]);
+  useEffect(() => { recentSummariesRef.current = recentSummaries; }, [recentSummaries]);
+  useEffect(() => { onSessionCompleteRef.current = onSessionComplete; }, [onSessionComplete]);
 
   useEffect(() => {
     if (!initialised.current) return;
@@ -104,6 +112,11 @@ export function useChat({ yearLevel, subject, isNaplanMode = false, studentProfi
   }, [profileId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const startNewChat = useCallback(() => {
+    // Fire summary callback for the outgoing session if it had meaningful content
+    const outgoing = sessionsRef.current.find(s => s.id === currentIdRef.current);
+    if (outgoing && outgoing.messages.length >= 3 && onSessionCompleteRef.current) {
+      onSessionCompleteRef.current(outgoing.id, outgoing.messages, subjectRef.current);
+    }
     const s = makeSession();
     const newApiId = uuidv4();
     apiSessionRef.current = newApiId;
@@ -172,6 +185,7 @@ export function useChat({ yearLevel, subject, isNaplanMode = false, studentProfi
           subject: subjectRef.current,
           is_naplan_mode: isNaplanModeRef.current,
           student_profile: studentProfileRef.current ?? undefined,
+          session_context: recentSummariesRef.current.length > 0 ? recentSummariesRef.current : undefined,
         }),
         signal: controller.signal,
       });

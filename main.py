@@ -283,6 +283,14 @@ class ChatRequest(BaseModel):
     subject: str
     is_naplan_mode: bool = False
     student_profile: Optional[Dict[str, Any]] = None
+    session_context: Optional[List[str]] = None  # recent session summaries for continuity
+
+
+class SummariseRequest(BaseModel):
+    session_id: str
+    messages: List[Dict[str, str]]  # [{role: "user"|"tutor", text: "..."}]
+    subject: str
+    year_level: str
 
 
 class TTSRequest(BaseModel):
@@ -350,6 +358,30 @@ async def tts(request: Request, body: TTSRequest, _=Depends(verify_auth)):
     return Response(content=tts_response.audio_content, media_type="audio/mpeg")
 
 
+@app.post("/summarise")
+@limiter.limit("30/minute")
+async def summarise_session(request: Request, body: SummariseRequest, _=Depends(verify_auth)):
+    if not body.messages:
+        return {"summary": ""}
+
+    convo = "\n".join(
+        f'{"Student" if m.get("role") == "user" else "Tutor"}: {m.get("text", "")}'
+        for m in body.messages[-20:]
+    )
+
+    from langchain_core.messages import HumanMessage as _HumanMessage
+    prompt = (
+        f"You are reviewing a {body.year_level} {body.subject} tutoring session. "
+        f"Write a 2-3 sentence internal note for the AI tutor to read before the NEXT session with this student. "
+        f"Cover: (1) what topics/problems were worked on, (2) what the student understood well or made progress on, "
+        f"(3) any specific concepts or steps the student found difficult — be precise (e.g. 'expanding double brackets' not just 'algebra'). "
+        f"Write in third person. Do not include the student's name. Keep it under 80 words.\n\n"
+        f"Session transcript:\n{convo}\n\nInternal note:"
+    )
+    result = llm.invoke([_HumanMessage(content=prompt)])
+    return {"summary": result.content.strip()}
+
+
 @app.post("/chat")
 @limiter.limit("20/minute")
 async def chat(request: Request, body: ChatRequest, _=Depends(verify_auth)):
@@ -413,7 +445,9 @@ async def chat(request: Request, body: ChatRequest, _=Depends(verify_auth)):
     if body.student_profile:
         safe_profile = sanitise_profile(body.student_profile)
         system_prompt = generate_personalized_prompt(
-            body.subject, body.year_level, safe_profile, is_naplan_mode=body.is_naplan_mode,
+            body.subject, body.year_level, safe_profile,
+            is_naplan_mode=body.is_naplan_mode,
+            session_context=body.session_context or [],
         )
     else:
         system_prompt = build_system_prompt(body.subject, body.year_level, body.is_naplan_mode)
