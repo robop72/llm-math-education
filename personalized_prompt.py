@@ -71,9 +71,9 @@ def _build_personalization_layer(profile: dict) -> str:
     goals = profile.get("primary_goals", [])
 
     name_line = (
-        f'The student\'s first name is {name}. Use it occasionally and naturally — '
-        f'for example when opening a new topic, giving encouragement, or wrapping up. '
-        f'Do not use it on every message or it will feel forced.'
+        f'The student\'s first name is {name}. Use it very sparingly — at most once or twice per session. '
+        f'Reserve it for a meaningful moment: the very first message, or a genuine milestone worth celebrating. '
+        f'Never use it in routine replies, follow-up questions, or confirmations.'
     ) if name else ""
     goals_line = f"This student's primary goals are: {', '.join(goals)}." if goals else ""
 
