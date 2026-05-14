@@ -16,6 +16,7 @@ interface Props {
   onToggle: () => void;
   onOpenParentPortal: () => void;
   onOpenIntake: () => void;
+  onAddStudent?: () => void;
   onSwitchStudent?: () => void;
   activeStudentName?: string;
   hasProfile: boolean;
@@ -166,7 +167,7 @@ function SessionRow({
 export default function Sidebar({
   sessions, currentId, onNewChat, onLoadSession, onDeleteSession, onTogglePin,
   onRenameSession, dark, onToggleTheme, isOpen, onToggle, onOpenParentPortal,
-  onOpenIntake, onSwitchStudent, activeStudentName, hasProfile,
+  onOpenIntake, onAddStudent, onSwitchStudent, activeStudentName, hasProfile,
 }: Props) {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [shareSessionId, setShareSessionId] = useState<string | null>(null);
@@ -259,6 +260,18 @@ export default function Sidebar({
                 : <span className="ml-auto text-[10px] font-semibold bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 px-2 py-0.5 rounded-full">Set up</span>
               }
             </button>
+            {/* Add another student */}
+            {onAddStudent && (
+              <button
+                onClick={onAddStudent}
+                className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              >
+                <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                </svg>
+                <span>Add student</span>
+              </button>
+            )}
           </div>
         )}
 

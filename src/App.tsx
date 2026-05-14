@@ -17,7 +17,7 @@ import { useSessionSummaries } from './hooks/useSessionSummaries';
 import type { Message } from './hooks/useChat';
 import { YearLevel, Subject, ALLOWED_YEAR_LEVELS, ALLOWED_SUBJECTS } from './lib/curriculumConfig';
 
-type View = 'chat' | 'parent-pin' | 'parent-dashboard' | 'intake' | 'profile-picker';
+type View = 'chat' | 'parent-pin' | 'parent-dashboard' | 'intake' | 'intake-new' | 'profile-picker';
 
 export default function App() {
   // ── All hooks must be called unconditionally before any early returns ──────
@@ -145,12 +145,12 @@ export default function App() {
       onSignOut={supabaseEnabled ? signOut : undefined}
     />
   );
-  if (view === 'intake') return (
+  if (view === 'intake' || view === 'intake-new') return (
     <IntakeForm
       onComplete={handleSaveProfile}
-      onBack={() => setView(profiles.length > 0 ? 'chat' : 'chat')}
+      onBack={() => setView('chat')}
       onClear={() => { clearProfile(); setView('chat'); }}
-      initialProfile={profile}
+      initialProfile={view === 'intake' ? profile : null}
     />
   );
   if (view === 'profile-picker') return (
@@ -197,6 +197,7 @@ export default function App() {
         onToggle={() => setSidebarOpen(o => !o)}
         onOpenParentPortal={() => setView('parent-pin')}
         onOpenIntake={() => setView('intake')}
+        onAddStudent={() => setView('intake-new')}
         onSwitchStudent={profiles.length > 1 ? () => setView('profile-picker') : undefined}
         activeStudentName={profile?.student_name || undefined}
         hasProfile={profile !== null}
