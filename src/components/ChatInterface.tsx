@@ -87,10 +87,12 @@ export default function ChatInterface({
   const [input, setInput] = useState('');
   const [isReading, setIsReading] = useState(false);
   const [isListening, setIsListening] = useState(false);
+  const [interimText, setInterimText] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const recognitionRef = useRef<any>(null);
+  const isListeningRef = useRef(false);
 
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -107,6 +109,7 @@ export default function ChatInterface({
     const text = input.trim();
     if (!text || isLoading) return;
     setInput('');
+    setInterimText('');
     sendMessage(text);
   }
 
@@ -142,32 +145,66 @@ export default function ChatInterface({
     }
   }, [isReading, messages, accessToken, apiSessionId]);
 
+  const startRecognition = useCallback(() => {
+    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SR) return;
+    const rec = new SR();
+    rec.lang = 'en-AU';
+    rec.continuous = true;
+    rec.interimResults = true;
+    rec.maxAlternatives = 1;
+    recognitionRef.current = rec;
+
+    rec.onresult = (e: any) => {
+      let interim = '';
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        const result = e.results[i];
+        if (result.isFinal) {
+          const phrase = result[0].transcript.trim();
+          if (phrase) setInput(prev => prev ? `${prev} ${phrase}` : phrase);
+        } else {
+          interim += result[0].transcript;
+        }
+      }
+      setInterimText(interim);
+    };
+
+    rec.onerror = (e: any) => {
+      // 'no-speech' is normal — auto-restart; other errors stop listening
+      if (e.error !== 'no-speech') {
+        isListeningRef.current = false;
+        setIsListening(false);
+        setInterimText('');
+      }
+    };
+
+    // Auto-restart when browser times out (Chrome stops after ~60s silence)
+    rec.onend = () => {
+      setInterimText('');
+      if (isListeningRef.current) {
+        try { rec.start(); } catch {}
+      } else {
+        setIsListening(false);
+      }
+    };
+
+    rec.start();
+  }, []);
+
   const handleMic = useCallback(() => {
     const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SR) return;
     if (isListening) {
+      isListeningRef.current = false;
       recognitionRef.current?.stop();
+      setIsListening(false);
+      setInterimText('');
       return;
     }
-    const baseline = input; // snapshot input before mic starts
-    const rec = new SR();
-    rec.lang = 'en-AU';
-    rec.interimResults = false;
-    rec.maxAlternatives = 1;
-    recognitionRef.current = rec;
-    rec.onresult = (e: any) => {
-      // Overwrite with full transcript each time so partial results don't stack
-      const transcript = Array.from(e.results as any[])
-        .map((r: any) => r[0].transcript)
-        .join(' ')
-        .trim();
-      setInput(baseline ? `${baseline} ${transcript}` : transcript);
-    };
-    rec.onerror = () => setIsListening(false);
-    rec.onend = () => setIsListening(false); // only stop indicator when recognition truly ends
-    rec.start();
+    isListeningRef.current = true;
     setIsListening(true);
-  }, [isListening, input]);
+    startRecognition();
+  }, [isListening, startRecognition]);
 
   const hasMicSupport = typeof window !== 'undefined' &&
     ((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition);
@@ -198,17 +235,22 @@ export default function ChatInterface({
         </button>
       )}
 
-      <textarea
-        ref={textareaRef}
-        rows={1}
-        value={input}
-        onChange={e => setInput(e.target.value)}
-        onKeyDown={handleKey}
-        placeholder={`Ask Voxii a ${subject} question…`}
-        className="flex-1 bg-transparent outline-none resize-none text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 scrollbar-none"
-        style={{ scrollbarWidth: 'none', overflowY: 'auto' }}
-        disabled={isLoading}
-      />
+      <div className="flex-1 min-w-0">
+        <textarea
+          ref={textareaRef}
+          rows={1}
+          value={input}
+          onChange={e => setInput(e.target.value)}
+          onKeyDown={handleKey}
+          placeholder={isListening && !input ? 'Listening…' : `Ask Voxii a ${subject} question…`}
+          className="w-full bg-transparent outline-none resize-none text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 scrollbar-none"
+          style={{ scrollbarWidth: 'none', overflowY: 'auto' }}
+          disabled={isLoading}
+        />
+        {interimText && (
+          <p className="text-sm text-gray-400 dark:text-gray-500 italic truncate mt-0.5">{interimText}</p>
+        )}
+      </div>
 
       <div className="flex items-center gap-2 flex-shrink-0">
         {hasMicSupport && (
