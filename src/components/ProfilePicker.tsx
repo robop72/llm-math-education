@@ -36,7 +36,7 @@ function PinModal({ profile, onSuccess, onCancel }: {
   }
 
   return (
-    <div className="fixed inset-0 bg-gray-950/90 z-50 flex items-center justify-center px-4">
+    <div className="fixed inset-0 bg-gray-950/90 z-50 flex items-center justify-center px-4" onClick={() => inputRef.current?.focus()}>
       <div className="w-full max-w-xs bg-gray-900 rounded-2xl border border-gray-800 p-8 flex flex-col items-center gap-6">
         {/* Avatar */}
         <div className={`w-20 h-20 rounded-full ${avatar.bg} flex items-center justify-center text-4xl shadow-lg`}>
@@ -61,19 +61,20 @@ function PinModal({ profile, onSuccess, onCancel }: {
           ))}
         </div>
 
-        {/* Hidden input to capture keystrokes */}
+        {/* Keyboard input — visible field so browsers accept keyboard focus */}
         <input
           ref={inputRef}
           type="password"
           inputMode="numeric"
           value={pin}
           onChange={e => handleInput(e.target.value)}
-          className="opacity-0 absolute w-0 h-0"
+          onClick={() => inputRef.current?.focus()}
+          placeholder="Type your PIN"
+          className="w-full text-center px-3 py-2 rounded-xl border border-gray-700 bg-gray-800 text-white text-sm outline-none focus:border-blue-500 transition-colors placeholder-gray-600"
           aria-label="Enter PIN"
         />
 
-        {/* Tap anywhere hint + cancel */}
-        <p className="text-xs text-gray-500 -mt-2">Use your keyboard or tap below</p>
+        <p className="text-xs text-gray-500 -mt-3">Type on keyboard or use the pad below</p>
 
         {/* Number pad for touch */}
         <div className="grid grid-cols-3 gap-2 w-full">

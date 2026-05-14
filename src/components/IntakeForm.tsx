@@ -614,11 +614,9 @@ export default function IntakeForm({ onComplete, onBack, onClear, initialProfile
     }
   }
 
-  async function handleSubmit() {
-    setSubmitting(true);
-    if (parentPin) {
-      localStorage.setItem('voxii-parent-pin', parentPin);
-    }
+  async function saveProfile(showSpinner = true) {
+    if (showSpinner) setSubmitting(true);
+    if (parentPin) localStorage.setItem('voxii-parent-pin', parentPin);
     const extra: Partial<StudentProfile> = {
       id: initialProfile?.id,
       avatar: selectedAvatar,
@@ -643,9 +641,12 @@ export default function IntakeForm({ onComplete, onBack, onClear, initialProfile
       const profile = deriveProfileClientSide(draft);
       onComplete({ ...profile, ...extra });
     } finally {
-      setSubmitting(false);
+      if (showSpinner) setSubmitting(false);
     }
   }
+
+  async function handleSubmit() { await saveProfile(true); }
+  async function handleSaveNow() { await saveProfile(true); }
 
   const isLastStep = step === 4;
   const isFirstStep = step === (isEditing && hasPin ? 1 : 0);
@@ -748,6 +749,33 @@ export default function IntakeForm({ onComplete, onBack, onClear, initialProfile
             </button>
           )}
         </div>
+
+        {/* Save now — only when editing, only on non-final steps */}
+        {isEditing && !isLastStep && (
+          <button
+            type="button"
+            onClick={handleSaveNow}
+            disabled={submitting}
+            className="w-full mt-2 py-2 rounded-xl text-sm font-medium text-green-600 dark:text-green-400 border border-green-300 dark:border-green-700/60 hover:bg-green-50 dark:hover:bg-green-900/20 disabled:opacity-50 transition-colors flex items-center justify-center gap-1.5"
+          >
+            {submitting ? (
+              <>
+                <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                </svg>
+                Saving...
+              </>
+            ) : (
+              <>
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                Save and close
+              </>
+            )}
+          </button>
+        )}
 
         <p className="text-[10px] text-gray-400 dark:text-gray-600 text-center mt-3">
           Profile stored locally. Personalisation is invisible to the student.
