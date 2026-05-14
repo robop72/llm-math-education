@@ -17,7 +17,7 @@ import { YearLevel, Subject, ALLOWED_YEAR_LEVELS, ALLOWED_SUBJECTS } from './lib
 type View = 'chat' | 'parent-pin' | 'parent-dashboard' | 'intake';
 
 export default function App() {
-  const { session, loading: authLoading, supabaseEnabled, signOut } = useAuth();
+  const { session, loading: authLoading, supabaseEnabled, authError, signOut } = useAuth();
   const { dark, toggle } = useTheme();
   const { data: streakData, milestone, recordMessage, dismissMilestone } = useStreak();
 
@@ -32,7 +32,7 @@ export default function App() {
       </div>
     );
   }
-  if (supabaseEnabled && !session) return <AuthScreen />;
+  if (supabaseEnabled && !session) return <AuthScreen initialError={authError} />;
 
   const accessToken = session?.access_token;
   // Start open on desktop, closed on mobile

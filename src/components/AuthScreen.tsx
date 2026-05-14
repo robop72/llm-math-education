@@ -3,10 +3,14 @@ import { supabase } from '../lib/supabase';
 
 type Stage = 'enter-email' | 'check-email';
 
-export default function AuthScreen() {
+interface Props {
+  initialError?: string;
+}
+
+export default function AuthScreen({ initialError = '' }: Props) {
   const [email, setEmail] = useState('');
   const [stage, setStage] = useState<Stage>('enter-email');
-  const [error, setError] = useState('');
+  const [error, setError] = useState(initialError);
   const [loading, setLoading] = useState(false);
 
   async function handleSend() {
