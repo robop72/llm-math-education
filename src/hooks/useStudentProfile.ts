@@ -95,6 +95,14 @@ export function useStudentProfile() {
     setActiveProfileIdState(null);
   }, []);
 
+  const restoreProfiles = useCallback((ps: StoredProfile[]) => {
+    saveProfiles(ps);
+    setProfiles(ps);
+    const firstId = ps[0]?.id ?? null;
+    if (firstId) localStorage.setItem(ACTIVE_KEY, firstId);
+    setActiveProfileIdState(firstId);
+  }, []);
+
   return {
     profile: activeProfile,
     profiles,
@@ -103,5 +111,6 @@ export function useStudentProfile() {
     saveProfile,
     deleteProfile,
     clearProfile,
+    restoreProfiles,
   };
 }
