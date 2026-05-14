@@ -11,6 +11,7 @@ export interface SubjectPerformance {
 }
 
 export interface StudentProfile {
+  id?: string;
   student_name: string;
   year_level: number;
   state_curriculum: string;

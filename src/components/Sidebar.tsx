@@ -16,6 +16,8 @@ interface Props {
   onToggle: () => void;
   onOpenParentPortal: () => void;
   onOpenIntake: () => void;
+  onSwitchStudent?: () => void;
+  activeStudentName?: string;
   hasProfile: boolean;
 }
 
@@ -164,7 +166,7 @@ function SessionRow({
 export default function Sidebar({
   sessions, currentId, onNewChat, onLoadSession, onDeleteSession, onTogglePin,
   onRenameSession, dark, onToggleTheme, isOpen, onToggle, onOpenParentPortal,
-  onOpenIntake, hasProfile,
+  onOpenIntake, onSwitchStudent, activeStudentName, hasProfile,
 }: Props) {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [shareSessionId, setShareSessionId] = useState<string | null>(null);
@@ -227,9 +229,23 @@ export default function Sidebar({
           </button>
         </div>
 
-        {/* Student Profile */}
+        {/* Student selector */}
         {isOpen && (
-          <div className="px-3 mb-3">
+          <div className="px-3 mb-3 space-y-1">
+            {/* Active student + switch */}
+            {onSwitchStudent && activeStudentName && (
+              <button
+                onClick={onSwitchStudent}
+                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              >
+                <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <span className="truncate flex-1 text-left">{activeStudentName}</span>
+                <span className="text-[10px] font-semibold bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 px-2 py-0.5 rounded-full flex-shrink-0">Switch</span>
+              </button>
+            )}
+            {/* Edit / Set up profile */}
             <button
               onClick={onOpenIntake}
               className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors group"
@@ -237,7 +253,7 @@ export default function Sidebar({
               <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
-              <span>Student Profile</span>
+              <span>{hasProfile ? 'Edit profile' : 'Student Profile'}</span>
               {hasProfile
                 ? <span className="ml-auto w-2 h-2 rounded-full bg-green-500 flex-shrink-0" title="Profile active" />
                 : <span className="ml-auto text-[10px] font-semibold bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 px-2 py-0.5 rounded-full">Set up</span>

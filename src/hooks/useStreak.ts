@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 
 export interface StreakData {
   current_streak: number;
@@ -10,7 +10,9 @@ export interface StreakData {
   totalXP: number;
 }
 
-const STORAGE_KEY = 'voxii-streak';
+function streakKey(profileId: string | null) {
+  return profileId ? `voxii-streak-${profileId}` : 'voxii-streak';
+}
 const DAILY_GOAL = 5;
 const MILESTONES = [7, 30, 100];
 
@@ -30,9 +32,9 @@ function defaultData(): StreakData {
   };
 }
 
-function load(): StreakData {
+function load(profileId: string | null): StreakData {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(streakKey(profileId));
     if (!raw) return defaultData();
     return { ...defaultData(), ...JSON.parse(raw) };
   } catch {
@@ -40,8 +42,8 @@ function load(): StreakData {
   }
 }
 
-function save(data: StreakData) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+function save(data: StreakData, profileId: string | null) {
+  localStorage.setItem(streakKey(profileId), JSON.stringify(data));
 }
 
 function dateDiffDays(a: string, b: string): number {
@@ -49,9 +51,15 @@ function dateDiffDays(a: string, b: string): number {
   return Math.round((new Date(b).getTime() - new Date(a).getTime()) / msPerDay);
 }
 
-export function useStreak() {
-  const [data, setData] = useState<StreakData>(load);
+export function useStreak(profileId: string | null = null) {
+  const [data, setData] = useState<StreakData>(() => load(profileId));
   const [milestone, setMilestone] = useState<number | null>(null);
+
+  // Reload when active profile changes
+  useEffect(() => {
+    setData(load(profileId));
+    setMilestone(null);
+  }, [profileId]);
 
   const recordMessage = useCallback(() => {
     setData(prev => {
@@ -102,20 +110,20 @@ export function useStreak() {
         }
       }
 
-      save(updated);
+      save(updated, profileId);
       return updated;
     });
-  }, []);
+  }, [profileId]);
 
   const dismissMilestone = useCallback(() => setMilestone(null), []);
 
   const addFreeze = useCallback(() => {
     setData(prev => {
       const updated = { ...prev, streakFreezeCount: prev.streakFreezeCount + 1 };
-      save(updated);
+      save(updated, profileId);
       return updated;
     });
-  }, []);
+  }, [profileId]);
 
   return { data, milestone, recordMessage, dismissMilestone, addFreeze };
 }

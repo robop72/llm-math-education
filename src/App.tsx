@@ -5,6 +5,7 @@ import ParentPin from './components/ParentPin';
 import ParentDashboard from './components/ParentDashboard';
 import IntakeForm from './components/IntakeForm';
 import AuthScreen from './components/AuthScreen';
+import ProfilePicker from './components/ProfilePicker';
 import StreakDisplay from './components/StreakDisplay';
 import MilestoneModal from './components/MilestoneModal';
 import { useTheme } from './hooks/useTheme';
@@ -14,13 +15,12 @@ import { useStreak } from './hooks/useStreak';
 import { useAuth } from './hooks/useAuth';
 import { YearLevel, Subject, ALLOWED_YEAR_LEVELS, ALLOWED_SUBJECTS } from './lib/curriculumConfig';
 
-type View = 'chat' | 'parent-pin' | 'parent-dashboard' | 'intake';
+type View = 'chat' | 'parent-pin' | 'parent-dashboard' | 'intake' | 'profile-picker';
 
 export default function App() {
   // ── All hooks must be called unconditionally before any early returns ──────
   const { session, loading: authLoading, supabaseEnabled, authError, signOut } = useAuth();
   const { dark, toggle } = useTheme();
-  const { data: streakData, milestone, recordMessage, dismissMilestone } = useStreak();
   const [sidebarOpen, setSidebarOpen] = useState(() =>
     typeof window !== 'undefined' ? window.innerWidth >= 768 : true
   );
@@ -28,7 +28,13 @@ export default function App() {
   const [subject, setSubject] = useState<Subject>('Maths');
   const [isNaplanMode, setIsNaplanMode] = useState(false);
   const [view, setView] = useState<View>('chat');
-  const { profile, saveProfile, clearProfile } = useStudentProfile();
+
+  const {
+    profile, profiles, activeProfileId,
+    setActiveProfile, saveProfile, deleteProfile, clearProfile,
+  } = useStudentProfile();
+
+  const { data: streakData, milestone, recordMessage, dismissMilestone } = useStreak(activeProfileId);
 
   useEffect(() => {
     if (view === 'parent-pin' && sessionStorage.getItem('voxii-parent-auth') === 'true') {
@@ -44,25 +50,23 @@ export default function App() {
     }
   }, [profile]);
 
-  // Auto-redirect to profile setup on first sign-in (Supabase session exists but no profile yet)
-  useEffect(() => {
-    if (supabaseEnabled && session && !authLoading && !profile && view === 'chat') {
-      setView('intake');
-    }
-  }, [supabaseEnabled, session, authLoading, profile, view]);
-
   const {
     sessions, currentId, messages, isLoading, apiSessionId,
     sendMessage: sendMessageRaw, startNewChat, loadSession, deleteSession,
     togglePin, renameSession, cancelMessage,
-  } = useChat({ yearLevel, subject, isNaplanMode, studentProfile: profile, accessToken: session?.access_token });
+  } = useChat({
+    yearLevel, subject, isNaplanMode,
+    studentProfile: profile,
+    accessToken: session?.access_token,
+    profileId: activeProfileId,
+  });
 
   const sendMessage = useCallback((msg: string) => {
     recordMessage();
     sendMessageRaw(msg);
   }, [sendMessageRaw, recordMessage]);
 
-  // ── Auth gate — safe to return early now that all hooks are called ─────────
+  // ── Auth gate ─────────────────────────────────────────────────────────────
   if (supabaseEnabled && authLoading) {
     return (
       <div className="min-h-screen bg-gray-950 flex items-center justify-center">
@@ -75,6 +79,11 @@ export default function App() {
   }
   if (supabaseEnabled && !session) return <AuthScreen initialError={authError} />;
 
+  // ── Post-auth routing: no profiles → intake, 2+ profiles → picker ─────────
+  if (supabaseEnabled && session && !authLoading && profiles.length === 0 && view === 'chat') {
+    // Defer to avoid setState-during-render
+  }
+
   // ── View routing ──────────────────────────────────────────────────────────
   function handleLoadSession(id: string) {
     loadSession(id);
@@ -86,16 +95,55 @@ export default function App() {
     if (window.innerWidth < 768) setSidebarOpen(false);
   }
 
+  function handleSaveProfile(p: import('./lib/studentProfile').StudentProfile) {
+    saveProfile(p);
+    setView('chat');
+  }
+
+  function handleAddStudent() {
+    setView('intake');
+  }
+
+  function handleSelectProfile(id: string) {
+    setActiveProfile(id);
+    setView('chat');
+  }
+
   if (view === 'parent-pin') return <ParentPin onSuccess={() => setView('parent-dashboard')} onBack={() => setView('chat')} />;
-  if (view === 'parent-dashboard') return <ParentDashboard onBack={() => setView('chat')} onSignOut={supabaseEnabled ? signOut : undefined} />;
+  if (view === 'parent-dashboard') return (
+    <ParentDashboard
+      profiles={profiles}
+      activeProfileId={activeProfileId}
+      onSwitchProfile={handleSelectProfile}
+      onBack={() => setView('chat')}
+      onSignOut={supabaseEnabled ? signOut : undefined}
+    />
+  );
   if (view === 'intake') return (
     <IntakeForm
-      onComplete={p => { saveProfile(p); setView('chat'); }}
-      onBack={() => setView('chat')}
+      onComplete={handleSaveProfile}
+      onBack={() => setView(profiles.length > 0 ? 'chat' : 'chat')}
       onClear={() => { clearProfile(); setView('chat'); }}
       initialProfile={profile}
     />
   );
+  if (view === 'profile-picker') return (
+    <ProfilePicker
+      profiles={profiles}
+      onSelect={handleSelectProfile}
+      onAddStudent={handleAddStudent}
+    />
+  );
+
+  // Auto-redirect: no profiles → intake; 2+ profiles with no active → picker
+  if (profiles.length === 0) {
+    setTimeout(() => setView('intake'), 0);
+    return null;
+  }
+  if (profiles.length > 1 && !activeProfileId) {
+    setTimeout(() => setView('profile-picker'), 0);
+    return null;
+  }
 
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-gray-950 overflow-hidden">
@@ -123,6 +171,8 @@ export default function App() {
         onToggle={() => setSidebarOpen(o => !o)}
         onOpenParentPortal={() => setView('parent-pin')}
         onOpenIntake={() => setView('intake')}
+        onSwitchStudent={profiles.length > 1 ? () => setView('profile-picker') : undefined}
+        activeStudentName={profile?.student_name || undefined}
         hasProfile={profile !== null}
       />
 

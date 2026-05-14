@@ -18,19 +18,23 @@ export interface ChatSession {
   pinned?: boolean;
 }
 
-const STORAGE_KEY = 'voxii-sessions';
 const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
+
+function sessionsKey(profileId: string | null) {
+  return profileId ? `voxii-sessions-${profileId}` : 'voxii-sessions';
+}
 
 function makeSession(): ChatSession {
   return { id: uuidv4(), title: 'New Chat', messages: [], createdAt: Date.now() };
 }
 
-export function useChat({ yearLevel, subject, isNaplanMode = false, studentProfile = null, accessToken }: {
+export function useChat({ yearLevel, subject, isNaplanMode = false, studentProfile = null, accessToken, profileId = null }: {
   yearLevel: number;
   subject: string;
   isNaplanMode?: boolean;
   studentProfile?: StudentProfile | null;
   accessToken?: string;
+  profileId?: string | null;
 }) {
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [currentId, setCurrentId] = useState('');
@@ -47,6 +51,7 @@ export function useChat({ yearLevel, subject, isNaplanMode = false, studentProfi
   const isNaplanModeRef = useRef(isNaplanMode);
   const studentProfileRef = useRef(studentProfile);
   const initialised = useRef(false);
+  const profileIdRef = useRef(profileId);
 
   useEffect(() => { accessTokenRef.current = accessToken; }, [accessToken]);
   useEffect(() => { yearLevelRef.current = yearLevel; }, [yearLevel]);
@@ -58,30 +63,45 @@ export function useChat({ yearLevel, subject, isNaplanMode = false, studentProfi
   useEffect(() => {
     if (!initialised.current) return;
     const toSave = sessions.filter(s => s.messages.length > 0);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
+    localStorage.setItem(sessionsKey(profileIdRef.current), JSON.stringify(toSave));
   }, [sessions]);
 
-  useEffect(() => {
-    let history: ChatSession[] = [];
+  function loadSessionsForProfile(pid: string | null): ChatSession[] {
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        const all = JSON.parse(raw) as ChatSession[];
-        const cutoff = Date.now() - SESSION_TTL_MS;
-        // Exclude sessions older than 30 days or with missing/invalid createdAt
-        history = all.filter(s =>
-          s.messages.length > 0 &&
-          typeof s.createdAt === 'number' &&
-          s.createdAt > cutoff
-        );
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
-      }
-    } catch { /* ignore */ }
+      const raw = localStorage.getItem(sessionsKey(pid));
+      if (!raw) return [];
+      const all = JSON.parse(raw) as ChatSession[];
+      const cutoff = Date.now() - SESSION_TTL_MS;
+      return all.filter(s =>
+        s.messages.length > 0 &&
+        typeof s.createdAt === 'number' &&
+        s.createdAt > cutoff
+      );
+    } catch { return []; }
+  }
+
+  // Initial load
+  useEffect(() => {
+    const history = loadSessionsForProfile(profileId);
     const fresh = makeSession();
     initialised.current = true;
+    profileIdRef.current = profileId;
     setSessions([fresh, ...history]);
     setCurrentId(fresh.id);
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Reload when active profile switches
+  useEffect(() => {
+    if (!initialised.current) return;
+    profileIdRef.current = profileId;
+    const history = loadSessionsForProfile(profileId);
+    const fresh = makeSession();
+    const newApiId = uuidv4();
+    apiSessionRef.current = newApiId;
+    setApiSessionId(newApiId);
+    setSessions([fresh, ...history]);
+    setCurrentId(fresh.id);
+  }, [profileId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const startNewChat = useCallback(() => {
     const s = makeSession();

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParentAnalytics } from '../hooks/useParentAnalytics';
 import { getReports, SafetyReport } from '../utils/safety';
 import { StrandStat, RecentSession } from '../hooks/useParentAnalytics';
+import { StoredProfile } from '../hooks/useStudentProfile';
 
 function ActivityRing({ minutes, goal }: { minutes: number; goal: number }) {
   const R = 52, C = 2 * Math.PI * R;
@@ -109,9 +110,12 @@ function ComingSoonCard({ icon, title, description }: { icon: string; title: str
 interface Props {
   onBack: () => void;
   onSignOut?: () => void;
+  profiles?: StoredProfile[];
+  activeProfileId?: string | null;
+  onSwitchProfile?: (id: string) => void;
 }
 
-export default function ParentDashboard({ onBack, onSignOut }: Props) {
+export default function ParentDashboard({ onBack, onSignOut, profiles = [], activeProfileId, onSwitchProfile }: Props) {
   const analytics = useParentAnalytics();
   const [reports, setReports] = useState<SafetyReport[]>([]);
   const [showPinReset, setShowPinReset] = useState(false);
@@ -178,7 +182,22 @@ export default function ParentDashboard({ onBack, onSignOut }: Props) {
 
       <main className="max-w-3xl mx-auto px-4 py-6 space-y-6">
         <div>
-          <h1 className="text-2xl font-bold text-white">{studentName}&apos;s Progress</h1>
+          <div className="flex items-center gap-3 flex-wrap">
+            <h1 className="text-2xl font-bold text-white">{studentName}&apos;s Progress</h1>
+            {profiles.length > 1 && onSwitchProfile && (
+              <select
+                value={activeProfileId ?? ''}
+                onChange={e => onSwitchProfile(e.target.value)}
+                className="text-sm bg-gray-800 border border-gray-700 text-gray-300 rounded-lg px-3 py-1.5 outline-none cursor-pointer hover:border-gray-600 transition-colors"
+              >
+                {profiles.map(p => (
+                  <option key={p.id} value={p.id}>
+                    {p.student_name || 'Student'} — Year {p.year_level}
+                  </option>
+                ))}
+              </select>
+            )}
+          </div>
           <p className="text-sm text-gray-400 mt-0.5">
             Week of {new Date().toLocaleDateString('en-AU', { day: 'numeric', month: 'long', year: 'numeric' })}
           </p>
