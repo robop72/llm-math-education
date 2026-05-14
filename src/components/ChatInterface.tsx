@@ -140,7 +140,7 @@ export default function ChatInterface({
     } catch {
       setIsReading(false);
     }
-  }, [isReading, messages]);
+  }, [isReading, messages, accessToken, apiSessionId]);
 
   const handleMic = useCallback(() => {
     const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
