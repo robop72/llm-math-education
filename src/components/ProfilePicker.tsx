@@ -5,6 +5,7 @@ interface Props {
   profiles: StoredProfile[];
   onSelect: (id: string) => void;
   onAddStudent: () => void;
+  onEdit: (id: string) => void;
 }
 
 const AVATAR_COLORS = [
@@ -22,7 +23,7 @@ function initial(name: string) {
   return name.trim().charAt(0).toUpperCase() || '?';
 }
 
-export default function ProfilePicker({ profiles, onSelect, onAddStudent }: Props) {
+export default function ProfilePicker({ profiles, onSelect, onAddStudent, onEdit }: Props) {
   return (
     <div className="min-h-screen bg-gray-950 flex flex-col items-center justify-center px-4 py-12">
       <div className="w-full max-w-2xl">
@@ -35,26 +36,38 @@ export default function ProfilePicker({ profiles, onSelect, onAddStudent }: Prop
 
         <div className={`grid gap-4 ${profiles.length <= 2 ? 'grid-cols-2' : 'grid-cols-3'} max-w-lg mx-auto`}>
           {profiles.map(p => (
-            <button
-              key={p.id}
-              onClick={() => onSelect(p.id)}
-              className="group flex flex-col items-center gap-3 p-6 rounded-2xl bg-gray-900 border border-gray-800 hover:border-blue-500 hover:bg-gray-800 transition-all"
-            >
-              <div className={`w-16 h-16 rounded-full ${avatarColor(p.id)} flex items-center justify-center text-2xl font-bold text-white shadow-lg group-hover:scale-110 transition-transform`}>
-                {initial(p.student_name || 'S')}
-              </div>
-              <div className="text-center">
-                <p className="text-sm font-semibold text-white truncate max-w-[120px]">
-                  {p.student_name || 'Student'}
-                </p>
-                <p className="text-xs text-gray-400 mt-0.5">Year {p.year_level}</p>
-                {p.selected_subjects.length > 0 && (
-                  <p className="text-xs text-gray-500 mt-1 truncate max-w-[120px]">
-                    {p.selected_subjects.join(' · ')}
+            <div key={p.id} className="relative group">
+              <button
+                onClick={() => onSelect(p.id)}
+                className="w-full flex flex-col items-center gap-3 p-6 rounded-2xl bg-gray-900 border border-gray-800 group-hover:border-blue-500 group-hover:bg-gray-800 transition-all"
+              >
+                <div className={`w-16 h-16 rounded-full ${avatarColor(p.id)} flex items-center justify-center text-2xl font-bold text-white shadow-lg group-hover:scale-110 transition-transform`}>
+                  {initial(p.student_name || 'S')}
+                </div>
+                <div className="text-center">
+                  <p className="text-sm font-semibold text-white truncate max-w-[120px]">
+                    {p.student_name || 'Student'}
                   </p>
-                )}
-              </div>
-            </button>
+                  <p className="text-xs text-gray-400 mt-0.5">Year {p.year_level}</p>
+                  {p.selected_subjects.length > 0 && (
+                    <p className="text-xs text-gray-500 mt-1 truncate max-w-[120px]">
+                      {p.selected_subjects.join(' · ')}
+                    </p>
+                  )}
+                </div>
+              </button>
+              {/* Edit pencil — appears on hover, does not trigger card click */}
+              <button
+                onClick={e => { e.stopPropagation(); onEdit(p.id); }}
+                title="Edit profile"
+                className="absolute top-2 right-2 p-1.5 rounded-lg bg-gray-800 text-gray-500 opacity-0 group-hover:opacity-100 hover:text-white hover:bg-gray-700 transition-all"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536M9 11l6.364-6.364a2 2 0 012.828 2.828L11.828 13.828A2 2 0 0110 14.414V16h1.586a2 2 0 001.414-.586l.172-.172" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 21h18" />
+                </svg>
+              </button>
+            </div>
           ))}
 
           {/* Add student card */}

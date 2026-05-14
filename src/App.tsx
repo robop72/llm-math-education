@@ -158,6 +158,7 @@ export default function App() {
       profiles={profiles}
       onSelect={handleSelectProfile}
       onAddStudent={handleAddStudent}
+      onEdit={id => { setActiveProfile(id); setView('intake'); }}
     />
   );
 
