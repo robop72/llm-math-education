@@ -8,20 +8,24 @@ import AuthScreen from './components/AuthScreen';
 import ProfilePicker from './components/ProfilePicker';
 import StreakDisplay from './components/StreakDisplay';
 import MilestoneModal from './components/MilestoneModal';
+import MfaVerify from './components/MfaVerify';
 import { useTheme } from './hooks/useTheme';
 import { useChat } from './hooks/useChat';
 import { useStudentProfile } from './hooks/useStudentProfile';
 import { useStreak } from './hooks/useStreak';
 import { useAuth } from './hooks/useAuth';
+import { useMfa } from './hooks/useMfa';
 import { useSessionSummaries } from './hooks/useSessionSummaries';
 import type { Message } from './hooks/useChat';
 import { YearLevel, Subject, ALLOWED_YEAR_LEVELS, ALLOWED_SUBJECTS } from './lib/curriculumConfig';
+import { getCurriculumAuthority, getCurriculumFullName } from './lib/studentProfile';
 
 type View = 'chat' | 'parent-pin' | 'parent-dashboard' | 'intake' | 'intake-new' | 'profile-picker';
 
 export default function App() {
   // ── All hooks must be called unconditionally before any early returns ──────
   const { session, loading: authLoading, supabaseEnabled, authError, signOut } = useAuth();
+  const { enrolledFactor, needsVerification, verifyLogin } = useMfa(supabaseEnabled && !authLoading && !!session);
   const { dark, toggle } = useTheme();
   const [sidebarOpen, setSidebarOpen] = useState(() =>
     typeof window !== 'undefined' ? window.innerWidth >= 768 : true
@@ -104,6 +108,17 @@ export default function App() {
     );
   }
   if (supabaseEnabled && !session) return <AuthScreen initialError={authError} />;
+
+  // ── MFA gate: enrolled but session not yet elevated to aal2 ───────────────
+  if (supabaseEnabled && session && needsVerification && enrolledFactor) {
+    return (
+      <MfaVerify
+        factor={enrolledFactor}
+        onVerify={verifyLogin}
+        onSignOut={signOut}
+      />
+    );
+  }
 
   // ── Post-auth routing: no profiles → intake, 2+ profiles → picker ─────────
   if (supabaseEnabled && session && !authLoading && profiles.length === 0 && view === 'chat') {
@@ -235,6 +250,15 @@ export default function App() {
                   <option key={y} value={y}>Year {y}</option>
                 ))}
               </select>
+            )}
+
+            {profile?.state_curriculum && (
+              <span
+                title={getCurriculumFullName(profile.state_curriculum)}
+                className="flex-shrink-0 px-3 py-1.5 rounded-full text-sm font-medium bg-white dark:bg-gray-800 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800"
+              >
+                {getCurriculumAuthority(profile.state_curriculum)}
+              </span>
             )}
 
             <div className="w-px h-5 bg-gray-800 flex-shrink-0" />

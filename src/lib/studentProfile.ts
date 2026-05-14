@@ -2,6 +2,25 @@ export type SubjectLevel = 'Beginner' | 'Intermediate' | 'Advanced';
 export type GuidancePreference = 'Socratic' | 'Mixed' | 'Full Explanations';
 export type EngagementTone = 'Warm' | 'Balanced' | 'Formal';
 
+const CURRICULUM_MAP: Record<string, { authority: string; fullName: string }> = {
+  VIC: { authority: 'VCAA', fullName: 'Victorian Curriculum 2.0' },
+  NSW: { authority: 'NESA', fullName: 'NSW Curriculum (NESA)' },
+  QLD: { authority: 'QCAA', fullName: 'Australian Curriculum v9.0' },
+  WA:  { authority: 'SCSA', fullName: 'Western Australian Curriculum' },
+  SA:  { authority: 'SACE Board', fullName: 'South Australian Curriculum' },
+  ACT: { authority: 'ACARA', fullName: 'Australian Curriculum v9.0 (ACT)' },
+  TAS: { authority: 'TASC', fullName: 'Australian Curriculum v9.0 (Tasmania)' },
+  NT:  { authority: 'NTBOS', fullName: 'Australian Curriculum v9.0 (NT)' },
+};
+
+export function getCurriculumAuthority(stateCode: string): string {
+  return CURRICULUM_MAP[stateCode]?.authority ?? stateCode;
+}
+
+export function getCurriculumFullName(stateCode: string): string {
+  return CURRICULUM_MAP[stateCode]?.fullName ?? `Australian Curriculum (${stateCode})`;
+}
+
 export interface SubjectPerformance {
   grade: string;
   struggles_significantly: boolean;
