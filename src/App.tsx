@@ -44,6 +44,13 @@ export default function App() {
     }
   }, [profile]);
 
+  // Auto-redirect to profile setup on first sign-in (Supabase session exists but no profile yet)
+  useEffect(() => {
+    if (supabaseEnabled && session && !authLoading && !profile && view === 'chat') {
+      setView('intake');
+    }
+  }, [supabaseEnabled, session, authLoading, profile, view]);
+
   const {
     sessions, currentId, messages, isLoading, apiSessionId,
     sendMessage: sendMessageRaw, startNewChat, loadSession, deleteSession,
