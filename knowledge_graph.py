@@ -50,7 +50,9 @@ async def extract_and_update(
     llm,
 ) -> None:
     """Fire-and-forget: extract concepts from the exchange and upsert mastery scores."""
+    logger.info(f"[knowledge_graph] called: student_id={student_id!r} key_set={bool(SUPABASE_SERVICE_KEY)}")
     if not SUPABASE_SERVICE_KEY or student_id in ("dev", ""):
+        logger.warning(f"[knowledge_graph] skipping: key_set={bool(SUPABASE_SERVICE_KEY)} student_id={student_id!r}")
         return
 
     try:
