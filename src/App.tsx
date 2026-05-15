@@ -107,6 +107,7 @@ export default function App() {
     profileId: activeProfileId,
     recentSummaries: getRecentForSubject(subject),
     onSessionComplete: handleSessionComplete,
+    onUnauthorized: supabaseEnabled ? signOut : undefined,
   });
 
   const sendMessage = useCallback((msg: string) => {

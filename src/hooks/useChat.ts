@@ -28,7 +28,7 @@ function makeSession(): ChatSession {
   return { id: uuidv4(), title: 'New Chat', messages: [], createdAt: Date.now() };
 }
 
-export function useChat({ yearLevel, subject, isNaplanMode = false, studentProfile = null, accessToken, profileId = null, recentSummaries = [], onSessionComplete }: {
+export function useChat({ yearLevel, subject, isNaplanMode = false, studentProfile = null, accessToken, profileId = null, recentSummaries = [], onSessionComplete, onUnauthorized }: {
   yearLevel: number;
   subject: string;
   isNaplanMode?: boolean;
@@ -37,6 +37,7 @@ export function useChat({ yearLevel, subject, isNaplanMode = false, studentProfi
   profileId?: string | null;
   recentSummaries?: string[];
   onSessionComplete?: (sessionId: string, messages: Message[], subject: string) => void;
+  onUnauthorized?: () => void;
 }) {
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [currentId, setCurrentId] = useState('');
@@ -57,8 +58,10 @@ export function useChat({ yearLevel, subject, isNaplanMode = false, studentProfi
   const sessionsRef = useRef<ChatSession[]>([]);
   const recentSummariesRef = useRef(recentSummaries);
   const onSessionCompleteRef = useRef(onSessionComplete);
+  const onUnauthorizedRef = useRef(onUnauthorized);
 
   useEffect(() => { accessTokenRef.current = accessToken; }, [accessToken]);
+  useEffect(() => { onUnauthorizedRef.current = onUnauthorized; }, [onUnauthorized]);
   useEffect(() => { yearLevelRef.current = yearLevel; }, [yearLevel]);
   useEffect(() => { subjectRef.current = subject; }, [subject]);
   useEffect(() => { isNaplanModeRef.current = isNaplanMode; }, [isNaplanMode]);
@@ -189,6 +192,7 @@ export function useChat({ yearLevel, subject, isNaplanMode = false, studentProfi
         }),
         signal: controller.signal,
       });
+      if (res.status === 401) { onUnauthorizedRef.current?.(); return; }
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       const tutorMsg: Message = { id: uuidv4(), role: 'tutor', text: data.response };
