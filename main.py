@@ -8,10 +8,17 @@ import json
 import hashlib
 import datetime
 import asyncio
+import logging
 from collections import OrderedDict
 from dotenv import load_dotenv
 
 load_dotenv()  # loads .env for local dev; Cloud Run injects env vars directly
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+    stream=sys.stdout,
+)
 
 from fastapi import FastAPI, HTTPException, Request, Depends, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
