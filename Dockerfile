@@ -20,6 +20,8 @@ COPY main.py .
 COPY build_prompt.py .
 COPY intake_classifier.py .
 COPY personalized_prompt.py .
+COPY curriculum_authorities.py .
+COPY knowledge_graph.py .
 
 # This copies the folder and everything inside it recursively
 COPY vcaa_json_index/ ./vcaa_json_index/

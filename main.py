@@ -7,6 +7,7 @@ import re
 import json
 import hashlib
 import datetime
+import asyncio
 from collections import OrderedDict
 from dotenv import load_dotenv
 
@@ -26,6 +27,8 @@ from langchain_community.chat_message_histories import ChatMessageHistory, Redis
 from build_prompt import build_system_prompt
 from intake_classifier import derive_profile_from_questionnaire
 from personalized_prompt import generate_personalized_prompt
+from curriculum_authorities import get_db_state, get_info as get_curriculum_info
+import knowledge_graph
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
@@ -73,6 +76,9 @@ if _jwks_raw:
 
 async def verify_auth(creds: HTTPAuthorizationCredentials = Depends(_security)):
     token = creds.credentials
+    # API_SECRET check first — allows dev/test bypass even when JWKS is configured
+    if _API_SECRET and token == _API_SECRET:
+        return {"sub": "dev"}
     if _SUPABASE_JWK:
         try:
             payload = jose_jwt.decode(
@@ -84,9 +90,6 @@ async def verify_auth(creds: HTTPAuthorizationCredentials = Depends(_security)):
             return payload
         except JWTError as exc:
             raise HTTPException(status_code=401, detail=f"Invalid token: {exc}")
-    # Dev fallback: accept static API_SECRET bearer token
-    if _API_SECRET and token == _API_SECRET:
-        return {"sub": "dev"}
     raise HTTPException(status_code=500, detail="Server misconfiguration: no auth secret set.")
 
 
@@ -284,6 +287,7 @@ class ChatRequest(BaseModel):
     is_naplan_mode: bool = False
     student_profile: Optional[Dict[str, Any]] = None
     session_context: Optional[List[str]] = None  # recent session summaries for continuity
+    profile_id: Optional[str] = None  # stable per-student UUID for knowledge graph
 
 
 class SummariseRequest(BaseModel):
@@ -384,12 +388,17 @@ async def summarise_session(request: Request, body: SummariseRequest, _=Depends(
 
 @app.post("/chat")
 @limiter.limit("20/minute")
-async def chat(request: Request, body: ChatRequest, _=Depends(verify_auth)):
+async def chat(request: Request, body: ChatRequest, auth: dict = Depends(verify_auth)):
     # ── Server-side safety gate (authoritative — cannot be bypassed by clients) ──
     if _SERIOUS_RE.search(body.message):
         return {"response": _SERIOUS_RESPONSE}
     if _CRISIS_RE.search(body.message):
         return {"response": _CRISIS_RESPONSE}
+
+    # ── Knowledge graph: derive stable per-student ID ──────────────────────────
+    sub = auth.get("sub", "")
+    profile_id = body.profile_id or ""
+    student_id = f"{sub}__{profile_id}" if sub and sub != "dev" and profile_id else sub
 
     history = get_session_history(body.session_id)
 
@@ -405,10 +414,16 @@ async def chat(request: Request, body: ChatRequest, _=Depends(verify_auth)):
     clean_sub = sub_map.get(body.subject.strip().lower(), body.subject.strip().capitalize())
     clean_year = body.year_level.strip().title()
 
+    # ── State-aware curriculum context ─────────────────────────────────────────
+    state_code = (body.student_profile or {}).get("state_curriculum", "VIC")
+    db_state = get_db_state(state_code)
+    curriculum_info = get_curriculum_info(state_code)
+    curriculum_label = f"{curriculum_info['full_name']} ({curriculum_info['authority']})"
+
     # ── Multi-query retrieval — message wrapped in delimiters to reduce prompt injection ──
     search_gen_prompt = (
-        "Convert the student query below into 3 distinct, technical search terms "
-        "for a VCAA curriculum database.\nStudent query: ###\n"
+        f"Convert the student query below into 3 distinct, technical search terms "
+        f"for a {curriculum_label} curriculum database.\nStudent query: ###\n"
         f"{body.message[:500]}\n###\nReturn only the search terms, one per line."
     )
     queries_response = llm_query_gen.invoke(search_gen_prompt)
@@ -416,14 +431,35 @@ async def chat(request: Request, body: ChatRequest, _=Depends(verify_auth)):
 
     all_docs: list = []
     for q in search_queries:
+        # Try: exact state + year + subject
         try:
             scored = vector_db.similarity_search_with_relevance_scores(
                 q, k=3,
-                filter={"$and": [{"year_level": clean_year}, {"subject": clean_sub}]},
+                filter={"$and": [{"state": db_state}, {"year_level": clean_year}, {"subject": clean_sub}]},
             )
         except Exception:
-            # Metadata filter may fail if index has no matching docs — fall back unfiltered
-            scored = vector_db.similarity_search_with_relevance_scores(q, k=3)
+            scored = []
+
+        # Fallback 1: state + subject (any year)
+        if not scored:
+            try:
+                scored = vector_db.similarity_search_with_relevance_scores(
+                    q, k=3,
+                    filter={"$and": [{"state": db_state}, {"subject": clean_sub}]},
+                )
+            except Exception:
+                scored = []
+
+        # Fallback 2: year + subject only (pre-migration docs without state)
+        if not scored:
+            try:
+                scored = vector_db.similarity_search_with_relevance_scores(
+                    q, k=3,
+                    filter={"$and": [{"year_level": clean_year}, {"subject": clean_sub}]},
+                )
+            except Exception:
+                scored = vector_db.similarity_search_with_relevance_scores(q, k=3)
+
         all_docs.extend((doc, score) for doc, score in scored if score >= RAG_RELEVANCE_THRESHOLD)
 
     # ── Dedup by content + enforce token budget ────────────────────────────────
@@ -441,6 +477,9 @@ async def chat(request: Request, body: ChatRequest, _=Depends(verify_auth)):
         budget -= n_tokens
     context_text = "\n\n".join(chunks)
 
+    # ── Knowledge graph: fetch mastery context for this subject ───────────────
+    mastery_ctx = await knowledge_graph.get_mastery_context(student_id, clean_sub, clean_year)
+
     # ── System prompt assembly ─────────────────────────────────────────────────
     if body.student_profile:
         safe_profile = sanitise_profile(body.student_profile)
@@ -448,12 +487,18 @@ async def chat(request: Request, body: ChatRequest, _=Depends(verify_auth)):
             body.subject, body.year_level, safe_profile,
             is_naplan_mode=body.is_naplan_mode,
             session_context=body.session_context or [],
+            state_curriculum=state_code,
+            mastery_context=mastery_ctx,
         )
     else:
-        system_prompt = build_system_prompt(body.subject, body.year_level, body.is_naplan_mode)
+        system_prompt = build_system_prompt(
+            body.subject, body.year_level, body.is_naplan_mode, state_code
+        )
+        if mastery_ctx:
+            system_prompt += f"\n\n---\n\n{mastery_ctx}"
 
     if context_text:
-        system_prompt += f"\n\nEXPERT CURRICULUM GUIDE (VCAA-specific content for this session):\n{context_text}"
+        system_prompt += f"\n\nEXPERT CURRICULUM GUIDE ({curriculum_label} content for this session):\n{context_text}"
 
     messages_payload = [{"role": "system", "content": system_prompt}]
     for msg in history.messages:
@@ -483,4 +528,23 @@ async def chat(request: Request, body: ChatRequest, _=Depends(verify_auth)):
 
     history.add_user_message(body.message)
     history.add_ai_message(response)
+
+    asyncio.create_task(knowledge_graph.extract_and_update(
+        student_id, clean_sub, clean_year,
+        body.message, response, llm_query_gen,
+    ))
+
     return {"response": response}
+
+
+@app.get("/knowledge-graph")
+async def get_knowledge_graph(
+    profile_id: Optional[str] = None,
+    auth: dict = Depends(verify_auth),
+):
+    sub = auth.get("sub", "")
+    if not sub or sub == "dev":
+        return {"concepts": []}
+    student_id = f"{sub}__{profile_id}" if profile_id else sub
+    concepts = await knowledge_graph.get_all_concepts(student_id)
+    return {"concepts": concepts}

@@ -15,3 +15,5 @@ limits
 python-dotenv
 redis
 python-jose[cryptography]
+requests
+httpx

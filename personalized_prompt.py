@@ -109,6 +109,8 @@ def generate_personalized_prompt(
     student_profile: dict,
     is_naplan_mode: bool = False,
     session_context: list | None = None,
+    state_curriculum: str | None = None,
+    mastery_context: str = "",
 ) -> str:
     """
     Assembles a 3-layer personalised system prompt:
@@ -118,6 +120,12 @@ def generate_personalized_prompt(
 
     Falls back to Intermediate if the subject level is not in the profile.
     """
+    from curriculum_authorities import get_info
+
+    # Resolve state — prefer explicit arg, fall back to profile field, then VIC default
+    state = state_curriculum or student_profile.get("state_curriculum", "VIC")
+    state_info = get_info(state)
+
     clean_sub = SUB_MAP.get(subject.strip().lower(), "Mathematics")
 
     try:
@@ -130,13 +138,22 @@ def generate_personalized_prompt(
     year_config = YEAR_CONFIGS[year_int]
     scope = year_config["scope"].get(clean_sub, year_config["scope"]["Mathematics"])
 
+    y9_redirect  = state_info.get("year9_redirect",  year_config["redirect"])
+    y10_redirect = state_info.get("year10_redirect", year_config["redirect"])
+    redirect_msg = y10_redirect if year_int == 10 else (y9_redirect if year_int == 9 else year_config["redirect"])
+
+    stage_note = state_info.get("stage_note", "")
+    stage_line = f"\nStage framework: {stage_note}" if stage_note else ""
+
     year_prompt = f"""YEAR {year_int} CURRICULUM BOUNDARIES ({clean_sub}):
+Curriculum: {state_info['full_name']} ({state_info['authority']}){stage_line}
+Senior pathway: {state_info['senior_pathway']}
 Scope: {scope}
 
 Language & complexity: {year_config["complexity"]}
 
 If the student asks about a concept clearly outside this scope, respond:
-"{year_config["redirect"]}" """
+"{redirect_msg} Impressive thinking! Let's make sure the Year {year_int} foundation is solid first." """
 
     # Layer 2: internal level
     level = student_profile.get("subject_levels", {}).get(clean_sub, "Intermediate")
@@ -147,13 +164,17 @@ If the student asks about a concept clearly outside this scope, respond:
 
     parts = [CORE_PERSONA, subject_prompt, year_prompt, scaffolding, personalisation]
 
-    # NAPLAN overlay (additive, still forbidden to say level labels)
+    # NAPLAN overlay (additive)
     if is_naplan_mode and clean_sub in NAPLAN_OVERLAY:
         parts.append(NAPLAN_OVERLAY[clean_sub])
 
-    # Session memory (Layer 4 — only present when summaries exist)
+    # Layer 4: session memory
     memory = _build_memory_layer(session_context or [])
     if memory:
         parts.append(memory)
+
+    # Layer 5: adaptive knowledge graph context
+    if mastery_context:
+        parts.append(mastery_context)
 
     return "\n\n---\n\n".join(parts)
