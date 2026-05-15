@@ -20,6 +20,7 @@ interface Props {
   onSwitchStudent?: () => void;
   activeStudentName?: string;
   hasProfile: boolean;
+  onSignOut?: () => void;
 }
 
 function timeLabel(ts: number) {
@@ -167,7 +168,7 @@ function SessionRow({
 export default function Sidebar({
   sessions, currentId, onNewChat, onLoadSession, onDeleteSession, onTogglePin,
   onRenameSession, dark, onToggleTheme, isOpen, onToggle, onOpenParentPortal,
-  onOpenIntake, onAddStudent, onSwitchStudent, activeStudentName, hasProfile,
+  onOpenIntake, onAddStudent, onSwitchStudent, activeStudentName, hasProfile, onSignOut,
 }: Props) {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [shareSessionId, setShareSessionId] = useState<string | null>(null);
@@ -343,13 +344,27 @@ export default function Sidebar({
               </svg>
             </button>
             {settingsOpen && (
-              <div className="px-3 py-2">
+              <div className="px-3 py-2 space-y-1">
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-gray-500">{dark ? 'Dark mode' : 'Light mode'}</span>
                   <button onClick={onToggleTheme} className={`relative w-9 h-5 rounded-full transition-colors ${dark ? 'bg-blue-500' : 'bg-gray-300'}`}>
                     <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${dark ? 'translate-x-4' : 'translate-x-0'}`} />
                   </button>
                 </div>
+                {onSignOut && (
+                  <>
+                    <div className="h-px bg-gray-200 dark:bg-gray-700 my-1" />
+                    <button
+                      onClick={onSignOut}
+                      className="w-full flex items-center gap-2.5 px-1 py-2 rounded-xl text-sm text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                    >
+                      <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                      </svg>
+                      Sign out
+                    </button>
+                  </>
+                )}
               </div>
             )}
           </div>
