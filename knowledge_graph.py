@@ -7,6 +7,7 @@ import os
 import json
 import asyncio
 import logging
+import traceback
 from typing import Optional
 
 import httpx
@@ -96,7 +97,7 @@ async def extract_and_update(
                     },
                 )
     except Exception as exc:
-        logger.warning(f"[knowledge_graph] extract_and_update failed: {exc}")
+        logger.warning(f"[knowledge_graph] extract_and_update failed: {exc}\n{traceback.format_exc()}")
 
 
 async def get_mastery_context(
