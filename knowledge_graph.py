@@ -28,7 +28,7 @@ _EXTRACT_PROMPT = (
     '  "progressing" — student is engaging and making progress but not yet solid\n'
     '  "struggling"  — student is confused, made errors, or explicitly asked for help\n\n'
     "Return a JSON array only (no other text):\n"
-    '[{"key": "snake_case_concept_name", "label": "Human Readable Label", "signal": "mastered|progressing|struggling"}]\n\n'
+    '[{{"key": "snake_case_concept_name", "label": "Human Readable Label", "signal": "mastered|progressing|struggling"}}]\n\n'
     "If the exchange was a greeting, off-topic, or too brief to classify, return: []"
 )
 
